@@ -12,6 +12,9 @@ import { DataLoggerModule } from './data-logger/data-logger.module';
 import { ConfigModule } from '@nestjs/config';
 import { EnvConfig, OrmAsyncConfig } from './config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { APP_GUARD } from '@nestjs/core';
+import { JwtGuard } from './auth/jwt.guard';
+import { PrivilegeGuard } from './auth/privilege.guard';
 
 @Module({
   imports: [
@@ -27,6 +30,16 @@ import { TypeOrmModule } from '@nestjs/typeorm';
     DataLoggerModule,
     ConfigModule.forRoot(EnvConfig),
     TypeOrmModule.forRootAsync(OrmAsyncConfig),
+  ],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: JwtGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: PrivilegeGuard,
+    },
   ],
 })
 export class AppModule {}
