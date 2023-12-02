@@ -9,6 +9,8 @@ import { ComplaintsModule } from './complaints/complaints.module';
 import { ProhibitionsModule } from './prohibitions/prohibitions.module';
 import { LocationiqModule } from './locationiq/locationiq.module';
 import { DataLoggerModule } from './data-logger/data-logger.module';
+import { ConfigModule } from '@nestjs/config';
+import { EnvConfig } from './config';
 
 @Module({
   imports: [
@@ -22,6 +24,7 @@ import { DataLoggerModule } from './data-logger/data-logger.module';
     ProhibitionsModule,
     LocationiqModule,
     DataLoggerModule,
+    ConfigModule.forRoot(EnvConfig),
   ],
 })
 export class AppModule {}
