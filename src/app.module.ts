@@ -10,7 +10,8 @@ import { ProhibitionsModule } from './prohibitions/prohibitions.module';
 import { LocationiqModule } from './locationiq/locationiq.module';
 import { DataLoggerModule } from './data-logger/data-logger.module';
 import { ConfigModule } from '@nestjs/config';
-import { EnvConfig } from './config';
+import { EnvConfig, OrmAsyncConfig } from './config';
+import { TypeOrmModule } from '@nestjs/typeorm';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { EnvConfig } from './config';
     LocationiqModule,
     DataLoggerModule,
     ConfigModule.forRoot(EnvConfig),
+    TypeOrmModule.forRootAsync(OrmAsyncConfig),
   ],
 })
 export class AppModule {}
