@@ -5,6 +5,8 @@ import {
   TypeOrmModuleOptions,
 } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { AuthModuleOptions } from '@nestjs/passport';
+import { JwtModuleAsyncOptions } from '@nestjs/jwt';
 
 const EnvConfig: ConfigModuleOptions = {
   validationSchema: EnvConfigValidationSchema,
@@ -28,4 +30,19 @@ const OrmAsyncConfig: TypeOrmModuleAsyncOptions = {
   }),
 };
 
-export { EnvConfig, OrmAsyncConfig };
+const PassportRegister: AuthModuleOptions = {
+  defaultStrategy: 'jwt',
+};
+
+const JwtAsyncRegister: JwtModuleAsyncOptions = {
+  imports: [ConfigModule],
+  inject: [ConfigService],
+  useFactory: async (configService: ConfigService) => ({
+    secret: configService.get('JWT_SECRET'),
+    signOptions: {
+      expiresIn: configService.get('JWT_EXPIRE'),
+    },
+  }),
+};
+
+export { EnvConfig, OrmAsyncConfig, PassportRegister, JwtAsyncRegister };
