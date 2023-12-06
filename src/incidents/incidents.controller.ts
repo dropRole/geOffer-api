@@ -6,6 +6,7 @@ import {
   Param,
   Query,
   Patch,
+  Delete,
 } from '@nestjs/common';
 import { IncidentsService } from './incidents.service';
 import { PrivilegedRoute } from 'src/auth/privileged-route.decorator';
@@ -14,6 +15,8 @@ import OpenIncidentDTO from './dto/open-incident.dto';
 import Incident from './incident.entity';
 import ObtainIncidentsDTO from './dto/obtain-incidents.dto';
 import RenameIncidentDTO from './dto/rename-incident.dto';
+import AlterIncidentStatusDTO from './dto/alter-incident-status.dto';
+import User from 'src/auth/user.entity';
 
 @Controller('incidents')
 export class IncidentsController {
@@ -54,6 +57,15 @@ export class IncidentsController {
     @ExtractUser() user: User,
     @Param('id') id: string,
     @Body() alterIncidentStatusDTO: AlterIncidentStatusDTO,
+  ): Promise<{ id: string }> {
+    return;
+  }
+
+  @Delete('/:id')
+  @PrivilegedRoute('SUPERUSER', 'OFFEREE', 'OFFEROR')
+  closeIncident(
+    @ExtractUser() user: User,
+    @Param('id') id: string,
   ): Promise<{ id: string }> {
     return;
   }
