@@ -20,7 +20,7 @@ export default class Incident extends BaseEntity {
   title: string;
 
   @Check("status IN('PENDING', 'RESOLVED', 'REJECTED')")
-  @Column({ type: 'varchar', length: 8 })
+  @Column({ type: 'varchar', length: 8, default: 'PENDING' })
   status: IncidentStatus;
 
   @Column({ type: 'timestamp', default: 'NOW' })
