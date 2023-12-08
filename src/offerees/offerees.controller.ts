@@ -16,7 +16,7 @@ export class OffereesController {
   obtainOfferees(
     @Query() obtainOffereesDTO: ObtainOffereesDTO,
   ): Promise<Offeree[]> {
-    return;
+    return this.offereesService.obtainOfferees(obtainOffereesDTO);
   }
 
   @Get('/basics')
@@ -24,7 +24,7 @@ export class OffereesController {
   claimBasics(
     @ExtractUser() user: User,
   ): Promise<Pick<Offeree, 'name' | 'surname' | 'email'>> {
-    return;
+    return this.offereesService.claimBasics(user);
   }
 
   @Patch('/basics')
@@ -33,6 +33,6 @@ export class OffereesController {
     @ExtractUser() user: User,
     @Body() amendBasicsDTO: AmendBasicsDTO,
   ): Promise<void> {
-    return;
+    return this.offereesService.amendBasics(user, amendBasicsDTO);
   }
 }

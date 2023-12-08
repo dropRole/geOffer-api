@@ -8,5 +8,6 @@ import Prohibition from './prohibition.entity';
   imports: [TypeOrmModule.forFeature([Prohibition])],
   controllers: [ProhibitionsController],
   providers: [ProhibitionsService],
+  exports: [ProhibitionsService],
 })
 export class ProhibitionsModule {}
