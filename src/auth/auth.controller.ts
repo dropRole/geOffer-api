@@ -17,19 +17,19 @@ export class AuthController {
   @Post('/signup')
   @PublicRoute()
   signup(@Body() signupDTO: SignupDTO): Promise<void> {
-    return;
+    return this.authService.signup(signupDTO);
   }
 
   @Post('/login')
   @PublicRoute()
   login(@Body() loginDTO: LoginDTO): Promise<Token> {
-    return;
+    return this.authService.login(loginDTO);
   }
 
   @Get('/:username/token')
   @PublicRoute()
   signToken(@Param('username') username: string): Promise<Token> {
-    return;
+    return this.authService.signToken(username);
   }
 
   @Get('/basics')
@@ -50,7 +50,7 @@ export class AuthController {
     @ExtractUser() user: User,
     @Body() alterUsernameDTO: AlterUsernameDTO,
   ): Promise<Token> {
-    return;
+    return this.authService.alterUsername(user, alterUsernameDTO);
   }
 
   @Patch('/password')
@@ -59,6 +59,6 @@ export class AuthController {
     @ExtractUser() user: User,
     @Body() alterPasswordDTO: AlterPasswordDTO,
   ): Promise<void> {
-    return;
+    return this.authService.alterPassword(user, alterPasswordDTO);
   }
 }

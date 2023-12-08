@@ -1,4 +1,8 @@
-import { Module } from '@nestjs/common';
+import {
+  Module,
+  ClassSerializerInterceptor,
+  ValidationPipe,
+} from '@nestjs/common';
 import { AuthModule } from './auth/auth.module';
 import { OffereesModule } from './offerees/offerees.module';
 import { OfferorsModule } from './offerors/offerors.module';
@@ -12,7 +16,7 @@ import { DataLoggerModule } from './data-logger/data-logger.module';
 import { ConfigModule } from '@nestjs/config';
 import { EnvConfig, OrmAsyncConfig } from './config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { APP_GUARD } from '@nestjs/core';
+import { APP_GUARD, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
 import { JwtGuard } from './auth/jwt.guard';
 import { PrivilegeGuard } from './auth/privilege.guard';
 
@@ -39,6 +43,14 @@ import { PrivilegeGuard } from './auth/privilege.guard';
     {
       provide: APP_GUARD,
       useClass: PrivilegeGuard,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: ClassSerializerInterceptor,
+    },
+    {
+      provide: APP_PIPE,
+      useClass: ValidationPipe,
     },
   ],
 })

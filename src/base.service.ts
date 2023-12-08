@@ -41,7 +41,7 @@ export default abstract class BaseService<T extends Entity> {
       );
     }
 
-    this.dataLoggerService.read(record.constructor.name, 1);
+    if (record) this.dataLoggerService.read(record.constructor.name, 1);
 
     return record;
   }

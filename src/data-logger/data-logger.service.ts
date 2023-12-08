@@ -14,7 +14,7 @@ export class DataLoggerService extends ConsoleLogger {
 
   read(type: string, take: number): void {
     super.log(
-      `DATA | ${type + take} ${
+      `DATA | ${take + ' ' + type} ${
         take > 1 ? 'instances were' : 'instance was'
       } read at ${new Date().toLocaleString()}.`,
     );
