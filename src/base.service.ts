@@ -8,7 +8,10 @@ import Prohibition from './prohibitions/prohibition.entity';
 import Request from './requests/request.entity';
 import Reservation from './reservations/reservation.entity';
 import { Repository, FindOptionsWhere } from 'typeorm';
-import { InternalServerErrorException } from '@nestjs/common';
+import {
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 
 type Entity =
   | User
@@ -41,7 +44,14 @@ export default abstract class BaseService<T extends Entity> {
       );
     }
 
-    if (record) this.dataLoggerService.read(record.constructor.name, 1);
+    if (!record)
+      throw new NotFoundException(
+        `${this.repo.metadata.name} record queried via ${JSON.stringify(
+          clause,
+        )} was not found.`,
+      );
+
+    this.dataLoggerService.read(record.constructor.name, 1);
 
     return record;
   }

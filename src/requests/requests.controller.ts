@@ -28,7 +28,7 @@ export class RequestsController {
     @ExtractUser() user: User,
     @Body() makeRequestDTO: MakeRequestDTO,
   ): Promise<{ id: string }> {
-    return;
+    return this.requestsService.makeRequest(user, makeRequestDTO);
   }
 
   @Get()
@@ -37,7 +37,7 @@ export class RequestsController {
     @ExtractUser() user: User,
     @Query() obtainRequestsDTO: ObtainRequestsDTO,
   ): Promise<Request[]> {
-    return;
+    return this.requestsService.obtainRequests(user, obtainRequestsDTO);
   }
 
   @Patch('/:id/provisions')
@@ -48,7 +48,11 @@ export class RequestsController {
     user: User,
     @Body() amendRequestProvisionsDTO: AmendRequestProvisionsDTO,
   ): Promise<{ id: string }> {
-    return;
+    return this.requestsService.amendRequestProvisions(
+      user,
+      id,
+      amendRequestProvisionsDTO,
+    );
   }
 
   @Patch('/:id/assessment')
@@ -58,7 +62,11 @@ export class RequestsController {
     @ExtractUser() user: User,
     @Body() assessReservationTimeDTO: AssessReservationTimeDTO,
   ): Promise<{ id: string }> {
-    return;
+    return this.requestsService.assessReservationTime(
+      user,
+      id,
+      assessReservationTimeDTO,
+    );
   }
 
   @Delete('/:id')
@@ -67,6 +75,6 @@ export class RequestsController {
     @Param('id') id: string,
     @ExtractUser() user: User,
   ): Promise<{ id: string }> {
-    return;
+    return this.requestsService.revokeRequest(user, id);
   }
 }

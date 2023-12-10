@@ -28,7 +28,7 @@ export class DataLoggerService extends ConsoleLogger {
 
   delete(type: string, take: number): void {
     super.log(
-      `DATA | ${type + take} ${
+      `DATA | ${take + ' ' + type} ${
         take > 1 ? 'instances were' : 'instance was'
       } deleted at ${new Date().toLocaleString()}.`,
     );

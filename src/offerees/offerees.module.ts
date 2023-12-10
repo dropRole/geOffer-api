@@ -9,5 +9,6 @@ import { ProhibitionsModule } from 'src/prohibitions/prohibitions.module';
   imports: [TypeOrmModule.forFeature([Offeree]), ProhibitionsModule],
   controllers: [OffereesController],
   providers: [OffereesService],
+  exports: [OffereesService],
 })
 export class OffereesModule {}
