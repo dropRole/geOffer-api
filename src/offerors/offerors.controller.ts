@@ -27,15 +27,15 @@ export class OfferorsController {
   recordOfferor(
     @Body() recordOfferorDTO: RecordOfferorDTO,
   ): Promise<{ id: string }> {
-    return;
+    return this.offerorsService.recordOfferor(recordOfferorDTO);
   }
 
   @Get()
   @PrivilegedRoute('SUPERUSER', 'OFFEREE')
   obtainOfferors(
     @Query() obtainOfferorsDTO: ObtainOfferorsDTO,
-  ): Promise<Offeror[]> {
-    return;
+  ): Promise<Record<any, any>[]> {
+    return this.offerorsService.obtainOfferors(obtainOfferorsDTO);
   }
 
   @Get('/business-info')
@@ -43,13 +43,13 @@ export class OfferorsController {
   claimBusinessInfo(
     @ExtractUser() user: User,
   ): Promise<Omit<Offeror, 'id' | 'reputation' | 'user' | 'requests'>> {
-    return;
+    return this.offerorsService.claimBusinessInfo(user);
   }
 
   @Get('/reputation')
   @PrivilegedRoute('OFFEROR')
   claimReputation(@ExtractUser() user: User): Promise<OfferorReputation> {
-    return;
+    return this.offerorsService.claimReputation(user);
   }
 
   @Patch('/business-info')
@@ -58,7 +58,7 @@ export class OfferorsController {
     @ExtractUser() user: User,
     @Body() amendBusinessInfoDTO: AmendBusinessInfoDTO,
   ): Promise<void> {
-    return;
+    return this.offerorsService.amendBusinessInfo(user, amendBusinessInfoDTO);
   }
 
   @Patch('/:id/reputation')
@@ -67,6 +67,6 @@ export class OfferorsController {
     @Param('id') id: string,
     @Body() alterReputationDTO: AlterReputationDTO,
   ): Promise<{ id: string }> {
-    return;
+    return this.offerorsService.alterReputation(id, alterReputationDTO);
   }
 }

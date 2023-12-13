@@ -55,4 +55,27 @@ export default abstract class BaseService<T extends Entity> {
 
     return record;
   }
+
+  async obtainManyBy(clause: FindOptionsWhere<T>): Promise<T[]> {
+    let records: T[];
+
+    try {
+      records = await this.repo.findBy(clause);
+    } catch (error) {
+      throw new InternalServerErrorException(
+        `Error during data fetch: ${error.message}`,
+      );
+    }
+
+    if (!records)
+      throw new NotFoundException(
+        `${this.repo.metadata.name} records queried via ${JSON.stringify(
+          clause,
+        )} were not found.`,
+      );
+
+    this.dataLoggerService.read(this.repo.metadata.name, records.length);
+
+    return records;
+  }
 }
