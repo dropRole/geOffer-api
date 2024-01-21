@@ -3,10 +3,12 @@ import {
   InternalServerErrorException,
   ConflictException,
   UnauthorizedException,
+  Inject,
+  forwardRef,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import Request from './request.entity';
-import { Repository, SelectQueryBuilder } from 'typeorm';
+import { Repository } from 'typeorm';
 import BaseService from 'src/base.service';
 import User from 'src/auth/user.entity';
 import MakeRequestDTO from './dto/make-request.dto';
@@ -25,7 +27,9 @@ export class RequestsService extends BaseService<Request> {
     @InjectRepository(Request)
     requestsRepo: Repository<Request>,
     private offereesService: OffereesService,
+    @Inject(forwardRef(() => OfferorsService))
     private offerorsService: OfferorsService,
+    @Inject(forwardRef(() => ReservationsService))
     private reservationsService: ReservationsService,
   ) {
     super(requestsRepo);
