@@ -20,6 +20,7 @@ import AssessReservationTimeDTO from './dto/assess-reservation-time.dto';
 import { ReservationsService } from 'src/reservations/reservations.service';
 import Offeree from 'src/offerees/offeree.entity';
 import { OffereesService } from 'src/offerees/offerees.service';
+import Reservation from 'src/reservations/reservation.entity';
 
 @Injectable()
 export class RequestsService extends BaseService<Request> {
@@ -170,26 +171,38 @@ export class RequestsService extends BaseService<Request> {
     if (request.offeree.user.username !== user.username)
       throw new UnauthorizedException(`You haven't made the ${id} request.`);
 
+    let reserved: Reservation;
+
     try {
-      await this.reservationsService.obtainOneBy({
-        request,
+      reserved = await this.reservationsService.obtainOneBy({
+        request: { id },
       });
     } catch (error) {
+      if (error.statusCode === 500)
+        throw new InternalServerErrorException(error.message);
+
       try {
-        await this.repo.delete(id);
-
-        this.dataLoggerService.delete(request.constructor.name, 1);
-
-        return { id: request.id };
+        await this.reservationsService.obtainOneBy({
+          request,
+        });
       } catch (error) {
-        throw new InternalServerErrorException(
-          `Error during data deletion: ${error.message}`,
-        );
+        try {
+          await this.repo.delete(id);
+
+          this.dataLoggerService.delete(request.constructor.name, 1);
+
+          return { id: request.id };
+        } catch (error) {
+          throw new InternalServerErrorException(
+            `Error during data deletion: ${error.message}`,
+          );
+        }
       }
     }
 
-    throw new ConflictException(
-      `Cannot delete ${id} request due to already reserved.`,
-    );
+    if (reserved)
+      throw new ConflictException(
+        `Cannot delete ${id} request due to already reserved.`,
+      );
   }
 }
