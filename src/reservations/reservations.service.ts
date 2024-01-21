@@ -9,7 +9,7 @@ import {
 import BaseService from 'src/base.service';
 import Reservation from './reservation.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, SelectQueryBuilder } from 'typeorm';
 import User from 'src/auth/user.entity';
 import MakeReservationDTO from './dto/make-reservation.dto';
 import { RequestsService } from 'src/requests/requests.service';
@@ -95,47 +95,67 @@ export class ReservationsService extends BaseService<Reservation> {
     user: User,
     obtainReservationsDTO: ObtainReservationsDTO,
   ): Promise<Reservation[]> {
-    const { idOfferee, idOfferor, reservedOrder, take } = obtainReservationsDTO;
+    const { idOfferee, idOfferor, reservationPeriod, reservedOrder, take } =
+      obtainReservationsDTO;
+
+    const query: SelectQueryBuilder<Reservation> =
+      this.repo.createQueryBuilder('reservation');
+    query.leftJoinAndSelect('reservation.incidents', 'incident');
+    query.leftJoinAndSelect('incident.complaints', 'complaint');
+    query.innerJoinAndSelect('reservation.request', 'request');
+    query.innerJoin('request.offeree', 'offeree');
+    query.innerJoin('offeree.user', 'offereeUser');
+    query.innerJoin('request.offeror', 'offeror');
+    query.innerJoin('offeror.user', 'offerorUser');
+
+    switch (user.privilege) {
+      case 'SUPERUSER':
+        if (idOfferee) query.where('offeree.id = :idOfferee', { idOfferee });
+
+        if (idOfferor) query.where('offeror.id = :idOfferor', { idOfferor });
+        break;
+      case 'OFFEREE':
+        query.where('"offereeUser".username = :username', {
+          username: user.username,
+        });
+        break;
+      case 'OFFEROR':
+        query.where('"offerorUser".username = :username', {
+          username: user.username,
+        });
+        break;
+    }
+
+    switch (reservationPeriod) {
+      case 'TODAY':
+        query.andWhere('reservation.reserved::DATE = NOW()::DATE');
+        break;
+      case 'WEEK':
+        query.andWhere(
+          "DATE_PART('week', reservation.reserved) = DATE_PART('week', NOW()) AND DATE_PART('year', reservation.reserved) = DATE_PART('year', NOW())",
+        );
+        break;
+      case 'MONTH':
+        query.andWhere(
+          "DATE_PART('month', reservation.reserved) = DATE_PART('month', NOW()) AND DATE_PART('year', reservation.reserved) = DATE_PART('year', NOW())",
+        );
+        break;
+    }
+
+    query.orderBy('reservation.reserved', reservedOrder);
+
+    query.take(take);
 
     let reservations: Reservation[] = [];
 
     try {
-      switch (user.privilege) {
-        case 'SUPERUSER':
-          reservations = await this.repo.find({
-            where: idOfferee
-              ? { request: { offeree: { id: idOfferee } } }
-              : idOfferor
-                ? { request: { offeror: { id: idOfferor } } }
-                : null,
-            order: { reserved: reservedOrder },
-            take,
-          });
-          break;
-        case 'OFFEREE':
-          reservations = await this.repo.find({
-            where: {
-              request: { offeree: { user: { username: user.username } } },
-            },
-            order: { reserved: reservedOrder },
-            take,
-          });
-          break;
-        case 'OFFEROR':
-          reservations = await this.repo.find({
-            where: {
-              request: { offeror: { user: { username: user.username } } },
-            },
-            order: { reserved: reservedOrder },
-            take,
-          });
-          break;
-      }
+      reservations = await query.getMany();
     } catch (error) {
       throw new InternalServerErrorException(
         `Error during data fetch: ${error.message}`,
       );
     }
+
     this.dataLoggerService.read('Reservation', reservations.length);
 
     return reservations;
