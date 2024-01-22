@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Delete,
+  Query,
 } from '@nestjs/common';
 import { ComplaintsService } from './complaints.service';
 import { PrivilegedRoute } from 'src/auth/privileged-route.decorator';
@@ -33,8 +34,8 @@ export class ComplaintsController {
   @PrivilegedRoute('SUPERUSER', 'OFFEREE', 'OFFEROR')
   obtainComplaints(
     @ExtractUser() user: User,
-    @Param('id') id: string,
-    @Body() obtainComplaintsDTO: ObtainComplaintsDTO,
+    @Param('idIncident') idIncident: string,
+    @Query() obtainComplaintsDTO: ObtainComplaintsDTO,
   ): Promise<Complaint[]> {
     return;
   }
