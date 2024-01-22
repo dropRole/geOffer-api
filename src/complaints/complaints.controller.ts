@@ -7,6 +7,7 @@ import {
   Param,
   Patch,
   Delete,
+  Query,
 } from '@nestjs/common';
 import { ComplaintsService } from './complaints.service';
 import { PrivilegedRoute } from 'src/auth/privileged-route.decorator';

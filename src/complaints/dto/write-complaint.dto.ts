@@ -5,6 +5,10 @@ export default class WriteComplaintDTO {
   @IsNotEmpty()
   content: string;
 
+  @IsOptional()
+  @IsUUID()
+  idCounteredComplaint: string;
+
   @IsUUID()
   @IsOptional()
   idCounteredComplaint: string;
