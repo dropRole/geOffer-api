@@ -3,6 +3,7 @@ import {
   Controller,
   Post,
   Get,
+  Query,
   Param,
   Patch,
   Delete,
@@ -26,17 +27,21 @@ export class ComplaintsController {
     @ExtractUser() user: User,
     @Body() writeComplaintDTO: WriteComplaintDTO,
   ): Promise<{ id: string }> {
-    return;
+    return this.complaintsService.writeComplaint(user, writeComplaintDTO);
   }
 
   @Get('/:idIncident')
   @PrivilegedRoute('SUPERUSER', 'OFFEREE', 'OFFEROR')
   obtainComplaints(
     @ExtractUser() user: User,
-    @Param('id') id: string,
-    @Body() obtainComplaintsDTO: ObtainComplaintsDTO,
+    @Param('idIncident') idIncident: string,
+    @Query() obtainComplaintsDTO: ObtainComplaintsDTO,
   ): Promise<Complaint[]> {
-    return;
+    return this.complaintsService.obtainComplaints(
+      user,
+      idIncident,
+      obtainComplaintsDTO,
+    );
   }
 
   @Patch('/:id/content')
@@ -46,7 +51,11 @@ export class ComplaintsController {
     @Param('id') id: string,
     @Body() rewriteComplaintDTO: RewriteComplaintDTO,
   ): Promise<{ id: string }> {
-    return;
+    return this.complaintsService.rewriteComplaint(
+      user,
+      id,
+      rewriteComplaintDTO,
+    );
   }
 
   @Delete('/:id')
@@ -55,6 +64,6 @@ export class ComplaintsController {
     @ExtractUser() user: User,
     @Param('id') id: string,
   ): Promise<{ id: string }> {
-    return;
+    return this.complaintsService.withdrawComplaint(user, id);
   }
 }
