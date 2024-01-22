@@ -58,7 +58,6 @@ export class IncidentsController {
   @Patch('/:id/status')
   @PrivilegedRoute('SUPERUSER')
   alterIncidentStatus(
-    @ExtractUser() user: User,
     @Param('id') id: string,
     @Body() alterIncidentStatusDTO: AlterIncidentStatusDTO,
   ): Promise<{ id: string }> {
