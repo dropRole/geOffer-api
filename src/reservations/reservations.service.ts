@@ -25,6 +25,7 @@ export class ReservationsService extends BaseService<Reservation> {
     reservationsRepo: Repository<Reservation>,
     @Inject(forwardRef(() => RequestsService))
     private requestsService: RequestsService,
+    @Inject(forwardRef(() => IncidentsService))
     private incidentsService: IncidentsService,
   ) {
     super(reservationsRepo);

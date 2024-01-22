@@ -10,7 +10,7 @@ import { IncidentsModule } from 'src/incidents/incidents.module';
   imports: [
     TypeOrmModule.forFeature([Reservation]),
     forwardRef(() => RequestsModule),
-    IncidentsModule,
+    forwardRef(() => IncidentsModule),
   ],
   controllers: [ReservationsController],
   providers: [ReservationsService],
