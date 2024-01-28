@@ -2,6 +2,8 @@ import {
   Injectable,
   InternalServerErrorException,
   ConflictException,
+  Inject,
+  forwardRef,
 } from '@nestjs/common';
 import BaseService from 'src/base.service';
 import Offeror from './offeror.entity';
@@ -30,6 +32,7 @@ export class OfferorsService extends BaseService<Offeror> {
     offerorsRepo: Repository<Offeror>,
     private authService: AuthService,
     private dataSource: DataSource,
+    @Inject(forwardRef(() => ReservationsService))
     private reservationsService: ReservationsService,
   ) {
     super(offerorsRepo);

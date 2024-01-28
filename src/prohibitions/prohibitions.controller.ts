@@ -26,7 +26,7 @@ export class ProhibitionsController {
   declareProhibition(
     @Body() declareProhibitionDTO: DeclareProhibitionDTO,
   ): Promise<{ id: string }> {
-    return;
+    return this.prohibitionsService.declareProhibition(declareProhibitionDTO);
   }
 
   @Get()
@@ -35,7 +35,10 @@ export class ProhibitionsController {
     @ExtractUser() user: User,
     @Query() obtainProhibitionsDTO: ObtainProhibitionsDTO,
   ): Promise<Prohibition[]> {
-    return;
+    return this.prohibitionsService.obtainProhibitions(
+      user,
+      obtainProhibitionsDTO,
+    );
   }
 
   @Patch('/:id/timeframe')
@@ -44,12 +47,12 @@ export class ProhibitionsController {
     @Param('id') id: string,
     @Body() alterTimeframeDTO: AlterTimeframeDTO,
   ): Promise<{ id: string }> {
-    return;
+    return this.prohibitionsService.alterTimeframe(id, alterTimeframeDTO);
   }
 
   @Delete('/:id')
   @PrivilegedRoute('SUPERUSER')
   disdeclareProhibition(@Param('id') id: string): Promise<{ id: string }> {
-    return;
+    return this.prohibitionsService.disdeclareProhibition(id);
   }
 }

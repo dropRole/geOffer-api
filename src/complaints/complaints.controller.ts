@@ -3,7 +3,6 @@ import {
   Controller,
   Post,
   Get,
-  Query,
   Param,
   Patch,
   Delete,

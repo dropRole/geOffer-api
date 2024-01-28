@@ -7,6 +7,7 @@ import {
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthModuleOptions } from '@nestjs/passport';
 import { JwtModuleAsyncOptions } from '@nestjs/jwt';
+import { SharedBullAsyncConfiguration, BullModuleOptions } from '@nestjs/bull';
 
 const EnvConfig: ConfigModuleOptions = {
   validationSchema: EnvConfigValidationSchema,
@@ -45,4 +46,23 @@ const JwtAsyncRegister: JwtModuleAsyncOptions = {
   }),
 };
 
-export { EnvConfig, OrmAsyncConfig, PassportRegister, JwtAsyncRegister };
+const BullModuleAsyncConfig: SharedBullAsyncConfiguration = {
+  imports: [ConfigModule],
+  inject: [ConfigService],
+  useFactory: async (
+    configService: ConfigService,
+  ): Promise<BullModuleOptions> => ({
+    redis: {
+      port: configService.get('REDIS_PORT'),
+      host: configService.get('REDIS_HOST'),
+    },
+  }),
+};
+
+export {
+  EnvConfig,
+  OrmAsyncConfig,
+  PassportRegister,
+  JwtAsyncRegister,
+  BullModuleAsyncConfig as BullModuleConfig,
+};

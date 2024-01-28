@@ -10,7 +10,7 @@ import { OffereesModule } from 'src/offerees/offerees.module';
 @Module({
   imports: [
     TypeOrmModule.forFeature([Request]),
-    OffereesModule,
+    forwardRef(() => OffereesModule),
     forwardRef(() => OfferorsModule),
     forwardRef(() => ReservationsModule),
   ],

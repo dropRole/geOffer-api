@@ -10,9 +10,5 @@ export default class WriteComplaintDTO {
   idCounteredComplaint: string;
 
   @IsUUID()
-  @IsOptional()
-  idCounteredComplaint: string;
-
-  @IsUUID()
   idIncident: string;
 }

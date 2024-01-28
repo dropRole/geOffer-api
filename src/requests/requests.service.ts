@@ -27,6 +27,7 @@ export class RequestsService extends BaseService<Request> {
   constructor(
     @InjectRepository(Request)
     requestsRepo: Repository<Request>,
+    @Inject(forwardRef(() => OffereesService))
     private offereesService: OffereesService,
     @Inject(forwardRef(() => OfferorsService))
     private offerorsService: OfferorsService,

@@ -14,11 +14,12 @@ import { ProhibitionsModule } from './prohibitions/prohibitions.module';
 import { LocationiqModule } from './locationiq/locationiq.module';
 import { DataLoggerModule } from './data-logger/data-logger.module';
 import { ConfigModule } from '@nestjs/config';
-import { EnvConfig, OrmAsyncConfig } from './config';
+import { BullModuleConfig, EnvConfig, OrmAsyncConfig } from './config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { APP_GUARD, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
 import { JwtGuard } from './auth/jwt.guard';
 import { PrivilegeGuard } from './auth/privilege.guard';
+import { BullModule } from '@nestjs/bull';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { PrivilegeGuard } from './auth/privilege.guard';
     DataLoggerModule,
     ConfigModule.forRoot(EnvConfig),
     TypeOrmModule.forRootAsync(OrmAsyncConfig),
+    BullModule.forRootAsync(BullModuleConfig),
   ],
   providers: [
     {
