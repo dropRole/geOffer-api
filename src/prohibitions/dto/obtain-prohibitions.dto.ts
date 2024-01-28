@@ -1,7 +1,6 @@
 import {
   IsOptional,
   IsUUID,
-  IsBooleanString,
   IsIn,
   IsNotEmpty,
   IsNumberString,
@@ -15,9 +14,6 @@ export default class ObtainProhibitionsDTO {
   @IsOptional()
   @IsUUID()
   idOfferor: string;
-
-  @IsBooleanString()
-  terminated: boolean = false;
 
   @IsIn(['ASC', 'DESC'])
   prohibitedOrder: 'ASC' | 'DESC' = 'DESC';
