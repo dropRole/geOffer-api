@@ -14,12 +14,12 @@ export class LocationiqController {
   @Get('/geocoding/reverse')
   @PrivilegedRoute('OFFEREE')
   reverse(@Query() reverseDTO: ReverseDTO): Observable<ReversedLocation> {
-    return;
+    return this.locationiqService.reverse(reverseDTO);
   }
 
   @Get('/geocoding/search')
   @PrivilegedRoute('SUPERUSER', 'OFFEROR')
   search(@Query() searchDTO: SearchDTO): Observable<SearchedLocation> {
-    return;
+    return this.locationiqService.search(searchDTO);
   }
 }
