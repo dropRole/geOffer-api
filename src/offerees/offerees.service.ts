@@ -3,7 +3,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import Offeree from './offeree.entity';
 import { SelectQueryBuilder, Repository } from 'typeorm';
 import BaseService from 'src/base.service';
-import { ProhibitionsService } from 'src/prohibitions/prohibitions.service';
 import ObtainOffereesDTO from './dto/obtain-offerees.dto';
 import User from 'src/auth/user.entity';
 import AmendBasicsDTO from './dto/amend-basics.dto';
@@ -13,7 +12,6 @@ export class OffereesService extends BaseService<Offeree> {
   constructor(
     @InjectRepository(Offeree)
     offereesRepo: Repository<Offeree>,
-    private prohibitionsService: ProhibitionsService,
   ) {
     super(offereesRepo);
   }

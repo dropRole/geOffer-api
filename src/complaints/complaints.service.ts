@@ -10,7 +10,6 @@ import { DataSource, Repository, SelectQueryBuilder } from 'typeorm';
 import User from 'src/auth/user.entity';
 import WriteComplaintDTO from './dto/write-complaint.dto';
 import Incident from 'src/incidents/incident.entity';
-import { IncidentsService } from 'src/incidents/incidents.service';
 import ObtainComplaintsDTO from './dto/obtain-complaints.dto';
 import RewriteComplaintDTO from './dto/rewrite-complaint.dto';
 
@@ -19,7 +18,6 @@ export class ComplaintsService extends BaseService<Complaint> {
   constructor(
     @InjectRepository(Complaint)
     private complaintsRepo: Repository<Complaint>,
-    private incidentsService: IncidentsService,
     private dataSource: DataSource,
   ) {
     super(complaintsRepo);
