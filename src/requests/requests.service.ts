@@ -63,6 +63,10 @@ export class RequestsService extends BaseService<Request> {
     try {
       await this.repo.insert(request);
     } catch (error) {
+      this.dataLoggerService.error(
+        `Error during Request record insertion: ${error.message}`,
+      );
+
       throw new InternalServerErrorException(
         `Error during data insert: ${error.message}`,
       );
@@ -98,12 +102,14 @@ export class RequestsService extends BaseService<Request> {
             },
       );
     } catch (error) {
+      this.dataLoggerService.error(
+        `Error during Request records fetch: ${error.message}`,
+      );
+
       throw new InternalServerErrorException(
         `Error during data fetch: ${error.message}`,
       );
     }
-
-    this.dataLoggerService.read('Request', requests.length);
 
     return requests;
   }
@@ -123,6 +129,10 @@ export class RequestsService extends BaseService<Request> {
     try {
       await this.repo.update({ id }, { seats, cause, note });
     } catch (error) {
+      this.dataLoggerService.error(
+        `Error during Request record update: ${error.message}`,
+      );
+
       throw new InternalServerErrorException(
         `Error during data update: ${error.message}`,
       );
@@ -152,6 +162,10 @@ export class RequestsService extends BaseService<Request> {
     try {
       await this.repo.update({ id }, { assessment });
     } catch (error) {
+      this.dataLoggerService.error(
+        `Error during Request record update: ${error.message}`,
+      );
+
       throw new InternalServerErrorException(
         `Error during data update: ${error.message}`,
       );
@@ -179,8 +193,13 @@ export class RequestsService extends BaseService<Request> {
         request: { id },
       });
     } catch (error) {
-      if (error.statusCode === 500)
+      if (error.statusCode === 500) {
+        this.dataLoggerService.error(
+          `Error during Reservation record fetch: ${error.message}`,
+        );
+
         throw new InternalServerErrorException(error.message);
+      }
 
       try {
         await this.reservationsService.obtainOneBy({
@@ -190,10 +209,14 @@ export class RequestsService extends BaseService<Request> {
         try {
           await this.repo.delete(id);
 
-          this.dataLoggerService.delete(request.constructor.name, 1);
+          this.dataLoggerService.delete(request.constructor.name, id);
 
           return { id: request.id };
         } catch (error) {
+          this.dataLoggerService.error(
+            `Error during Request record deletion: ${error.message}`,
+          );
+
           throw new InternalServerErrorException(
             `Error during data deletion: ${error.message}`,
           );

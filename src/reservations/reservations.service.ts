@@ -82,6 +82,10 @@ export class ReservationsService extends BaseService<Reservation> {
     try {
       await this.repo.insert(reservation);
     } catch (error) {
+      this.dataLoggerService.error(
+        `Error during Reservation record insertion: ${error.message}`,
+      );
+
       throw new InternalServerErrorException(
         `Error during data insert: ${error.message}`,
       );
@@ -152,12 +156,14 @@ export class ReservationsService extends BaseService<Reservation> {
     try {
       reservations = await query.getMany();
     } catch (error) {
+      this.dataLoggerService.error(
+        `Error during Reservation records fetch: ${error.message}`,
+      );
+
       throw new InternalServerErrorException(
         `Error during data fetch: ${error.message}`,
       );
     }
-
-    this.dataLoggerService.read('Reservation', reservations.length);
 
     return reservations;
   }
@@ -175,8 +181,13 @@ export class ReservationsService extends BaseService<Reservation> {
         status: 'PENDING',
       });
     } catch (error) {
-      if (error.statusCode === 500)
+      if (error.statusCode === 500) {
+        this.dataLoggerService.error(
+          `Error during Incident record fetch: ${error.message}`,
+        );
+
         throw new InternalServerErrorException(error.massage);
+      }
 
       if (reservation.request.offeror.user.username !== user.username)
         throw new UnauthorizedException(
@@ -186,12 +197,16 @@ export class ReservationsService extends BaseService<Reservation> {
       try {
         await this.repo.delete(id);
       } catch (error) {
+        this.dataLoggerService.error(
+          `Error during Reservation record deletion: ${error.message}`,
+        );
+
         throw new InternalServerErrorException(
           `Error during data deletion: ${error.message}`,
         );
       }
 
-      this.dataLoggerService.delete('Reservation', 1);
+      this.dataLoggerService.delete('Reservation', id);
 
       return { id: reservation.id };
     }

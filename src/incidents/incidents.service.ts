@@ -59,6 +59,10 @@ export class IncidentsService extends BaseService<Incident> {
     try {
       await this.repo.insert(incident);
     } catch (error) {
+      this.dataLoggerService.error(
+        `Error during Incident record insertion: ${error.message}`,
+      );
+
       throw new InternalServerErrorException(
         `Error during data insert: ${error.message}`,
       );
@@ -100,12 +104,14 @@ export class IncidentsService extends BaseService<Incident> {
     try {
       incidents = await query.getMany();
     } catch (error) {
+      this.dataLoggerService.error(
+        `Error during Incident records fetch: ${error.message}`,
+      );
+
       throw new InternalServerErrorException(
         `Error during data fetch: ${error.message}`,
       );
     }
-
-    this.dataLoggerService.read('Incident', incidents.length);
 
     return incidents;
   }
@@ -125,6 +131,10 @@ export class IncidentsService extends BaseService<Incident> {
     try {
       await this.repo.update({ id }, { title });
     } catch (error) {
+      this.dataLoggerService.error(
+        `Error during Incident record update: ${error.message}`,
+      );
+
       throw new InternalServerErrorException(
         `Error during data update: ${error.message}`,
       );
@@ -151,6 +161,10 @@ export class IncidentsService extends BaseService<Incident> {
     try {
       await this.repo.update(id, { status });
     } catch (error) {
+      this.dataLoggerService.error(
+        `Error during Incident record update: ${error.message}`,
+      );
+
       throw new InternalServerErrorException(
         `Error during data update: ${error.message}`,
       );
@@ -180,12 +194,16 @@ export class IncidentsService extends BaseService<Incident> {
     try {
       await this.repo.delete(id);
     } catch (error) {
+      this.dataLoggerService.error(
+        `Error during Incident record deletion: ${error.message}`,
+      );
+
       throw new InternalServerErrorException(
         `Error during data deletion: ${error.message}`,
       );
     }
 
-    this.dataLoggerService.delete(incident.constructor.name, 1);
+    this.dataLoggerService.delete(incident.constructor.name, id);
 
     return { id };
   }

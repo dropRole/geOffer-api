@@ -35,7 +35,5 @@ export class ProhibitionsConsumer {
         `Error during data deletion: ${error.message}`,
       );
     }
-
-    this.dataLoggerService.delete('Prohibition', 1);
   }
 }

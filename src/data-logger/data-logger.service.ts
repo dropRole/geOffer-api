@@ -12,25 +12,19 @@ export class DataLoggerService extends ConsoleLogger {
     );
   }
 
-  read(type: string, take: number): void {
-    super.log(
-      `DATA | ${take + ' ' + type} ${
-        take > 1 ? 'instances were' : 'instance was'
-      } read at ${new Date().toLocaleString()}.`,
-    );
-  }
-
   update(type: string, key: string, verbose?: string): void {
     super.log(
       `DATA | ${type} instance identified with ${key} was updated at ${new Date().toLocaleString()} (${verbose}).`,
     );
   }
 
-  delete(type: string, take: number): void {
+  delete(type: string, key: string): void {
     super.log(
-      `DATA | ${take + ' ' + type} ${
-        take > 1 ? 'instances were' : 'instance was'
-      } deleted at ${new Date().toLocaleString()}.`,
+      `DATA | ${type} instance with identifier ${key} was deleted at ${new Date().toLocaleString()}.`,
     );
+  }
+
+  error(message: string): void {
+    super.error(`DATA | ${new Date().toLocaleString()} ${message} `);
   }
 }

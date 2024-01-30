@@ -106,6 +106,10 @@ export class ProhibitionsService extends BaseService<Prohibition> {
     try {
       await this.repo.insert(prohibition);
     } catch (error) {
+      this.dataLoggerService.error(
+        `Error during Prohibition record insertion: ${error.message}`,
+      );
+
       throw new InternalServerErrorException(
         `Error during data insert: ${error.message}`,
       );
@@ -166,12 +170,14 @@ export class ProhibitionsService extends BaseService<Prohibition> {
     try {
       prohibitions = await query.getMany();
     } catch (error) {
+      this.dataLoggerService.error(
+        `Error during Prohibition records fetch: ${error.message}`,
+      );
+
       throw new InternalServerErrorException(
         `Error during data fetch: ${error.message}`,
       );
     }
-
-    this.dataLoggerService.read('Prohibition', prohibitions.length);
 
     return prohibitions;
   }
@@ -197,6 +203,10 @@ export class ProhibitionsService extends BaseService<Prohibition> {
     try {
       await this.repo.update(id, { termination });
     } catch (error) {
+      this.dataLoggerService.error(
+        `Error during Prohibition record update: ${error.message}`,
+      );
+
       throw new InternalServerErrorException(
         `Error during data update: ${error.message}`,
       );
@@ -221,12 +231,16 @@ export class ProhibitionsService extends BaseService<Prohibition> {
     try {
       await this.repo.delete(id);
     } catch (error) {
+      this.dataLoggerService.error(
+        `Error during Prohibition record deletion: ${error.message}`,
+      );
+
       throw new InternalServerErrorException(
         `Error during data deletion: ${error.message}`,
       );
     }
 
-    this.dataLoggerService.delete(prohibition.constructor.name, 1);
+    this.dataLoggerService.delete(prohibition.constructor.name, id);
 
     return { id };
   }

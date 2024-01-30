@@ -39,6 +39,10 @@ export default abstract class BaseService<T extends Entity> {
     try {
       record = await this.repo.findOneBy(clause);
     } catch (error) {
+      this.dataLoggerService.error(
+        `Error during record fetch: ${error.message}`,
+      );
+
       throw new InternalServerErrorException(
         `Error during data fetch: ${error.message}`,
       );
@@ -51,8 +55,6 @@ export default abstract class BaseService<T extends Entity> {
         )} was not found.`,
       );
 
-    this.dataLoggerService.read(record.constructor.name, 1);
-
     return record;
   }
 
@@ -62,6 +64,10 @@ export default abstract class BaseService<T extends Entity> {
     try {
       records = await this.repo.findBy(clause);
     } catch (error) {
+      this.dataLoggerService.error(
+        `Error during records fetch: ${error.message}`,
+      );
+
       throw new InternalServerErrorException(
         `Error during data fetch: ${error.message}`,
       );
@@ -73,8 +79,6 @@ export default abstract class BaseService<T extends Entity> {
           clause,
         )} were not found.`,
       );
-
-    this.dataLoggerService.read(this.repo.metadata.name, records.length);
 
     return records;
   }

@@ -46,6 +46,10 @@ export class ComplaintsService extends BaseService<Complaint> {
     try {
       incident = await query.getOne();
     } catch (error) {
+      this.dataLoggerService.error(
+        `Error during Incident record fetch: ${error.message}`,
+      );
+
       throw new InternalServerErrorException(
         `Error during data fetch: ${error.message}`,
       );
@@ -73,6 +77,10 @@ export class ComplaintsService extends BaseService<Complaint> {
     try {
       await this.repo.insert(complaint);
     } catch (error) {
+      this.dataLoggerService.error(
+        `Error during Complaint record fetch: ${error.message}`,
+      );
+
       throw new InternalServerErrorException(
         `Error during data insert: ${error.message}`,
       );
@@ -103,6 +111,10 @@ export class ComplaintsService extends BaseService<Complaint> {
     try {
       incident = await query.getOne();
     } catch (error) {
+      this.dataLoggerService.error(
+        `Error during Incident record fetch: ${error.message}`,
+      );
+
       throw new InternalServerErrorException(
         `Error during data fetch: ${error.message}`,
       );
@@ -128,12 +140,14 @@ export class ComplaintsService extends BaseService<Complaint> {
         take,
       });
     } catch (error) {
+      this.dataLoggerService.error(
+        `Error during Complaint records fetch: ${error.message}`,
+      );
+
       throw new InternalServerErrorException(
         `Error during data fetch: ${error.message}`,
       );
     }
-
-    this.dataLoggerService.read('Complaint', take);
 
     return complaints;
   }
@@ -157,6 +171,10 @@ export class ComplaintsService extends BaseService<Complaint> {
     try {
       await this.repo.update(id, { content });
     } catch (error) {
+      this.dataLoggerService.error(
+        `Error during Complaint record update: ${error.message}`,
+      );
+
       throw new InternalServerErrorException(
         `Error during data update: ${error.message}`,
       );
@@ -184,12 +202,16 @@ export class ComplaintsService extends BaseService<Complaint> {
     try {
       await this.repo.delete(id);
     } catch (error) {
+      this.dataLoggerService.error(
+        `Error during Complaint record deletion: ${error.message}`,
+      );
+
       throw new InternalServerErrorException(
         `Error during data deletion: ${error.message}`,
       );
     }
 
-    this.dataLoggerService.delete(complaint.constructor.name, 1);
+    this.dataLoggerService.delete(complaint.constructor.name, id);
 
     return { id };
   }

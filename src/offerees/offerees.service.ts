@@ -42,12 +42,14 @@ export class OffereesService extends BaseService<Offeree> {
     try {
       offerees = await queryBuilder.execute();
     } catch (error) {
+      this.dataLoggerService.error(
+        `Error during Offeree records fetch: ${error.message}`,
+      );
+
       throw new InternalServerErrorException(
         `Error during data fetch: ${error.message}`,
       );
     }
-
-    this.dataLoggerService.read('Offeree', offerees.length);
 
     return offerees;
   }
@@ -71,6 +73,10 @@ export class OffereesService extends BaseService<Offeree> {
         { name, surname, email },
       );
     } catch (error) {
+      this.dataLoggerService.error(
+        `Error during Offeree record update: ${error.message}`,
+      );
+
       throw new InternalServerErrorException(
         `Error during data update: ${error.message}`,
       );

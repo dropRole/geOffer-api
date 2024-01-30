@@ -84,6 +84,10 @@ export class OfferorsService extends BaseService<Offeror> {
       } catch (error) {
         await queryRunner.rollbackTransaction();
 
+        this.dataLoggerService.error(
+          `Error during User and Offeror data transaction: ${error.message}`,
+        );
+
         throw new InternalServerErrorException(
           `Error during data transaction: ${error.message}`,
         );
@@ -125,6 +129,10 @@ export class OfferorsService extends BaseService<Offeror> {
     try {
       offerors = await queryBuilder.execute();
     } catch (error) {
+      this.dataLoggerService.error(
+        `Error during Offeror records fetch: ${error.message}`,
+      );
+
       throw new InternalServerErrorException(
         `Error during data fetch: ${error.message}`,
       );
@@ -153,8 +161,6 @@ export class OfferorsService extends BaseService<Offeror> {
           a.reservationsMade > b.reservationsMade ? 1 : -1,
         );
     }
-
-    this.dataLoggerService.read('Offeror', offerors.length);
 
     return offerors;
   }
@@ -205,6 +211,10 @@ export class OfferorsService extends BaseService<Offeror> {
         { name, address: JSON.parse(address), telephone, email, businessHours },
       );
     } catch (error) {
+      this.dataLoggerService.error(
+        `Error during Offeror record update: ${error.message}`,
+      );
+
       throw new InternalServerErrorException(
         `Error during data update: ${error.message}`,
       );
@@ -239,6 +249,10 @@ export class OfferorsService extends BaseService<Offeror> {
         { reputation: { responsiveness, compliance, timeliness } },
       );
     } catch (error) {
+      this.dataLoggerService.error(
+        `Error during Offeror record update: ${error.message}`,
+      );
+
       throw new InternalServerErrorException(
         `Error during data update: ${error.message}`,
       );
