@@ -7,11 +7,11 @@ import {
   JoinColumn,
   OneToMany,
 } from 'typeorm';
-import BaseEntity from 'src/base.entity';
+import BaseEntity from '../base.entity';
 import IncidentStatus from './types/incident-status';
-import User from 'src/auth/user.entity';
-import Reservation from 'src/reservations/reservation.entity';
-import Complaint from 'src/complaints/complaint.entity';
+import User from '../auth/user.entity';
+import Reservation from '../reservations/reservation.entity';
+import Complaint from '../complaints/complaint.entity';
 
 @Entity('incidents')
 @Index(['openedBy', 'reservation'])

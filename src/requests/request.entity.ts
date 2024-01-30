@@ -1,7 +1,7 @@
 import { Entity, Index, Column, ManyToOne, JoinColumn } from 'typeorm';
-import BaseEntity from 'src/base.entity';
-import Offeree from 'src/offerees/offeree.entity';
-import Offeror from 'src/offerors/offeror.entity';
+import BaseEntity from '../base.entity';
+import Offeree from '../offerees/offeree.entity';
+import Offeror from '../offerors/offeror.entity';
 
 @Entity('requests')
 @Index(['offeree', 'offeror'])

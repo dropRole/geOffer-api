@@ -1,9 +1,9 @@
 import { Entity, Column, OneToOne, JoinColumn, OneToMany } from 'typeorm';
-import BaseEntity from 'src/base.entity';
+import BaseEntity from '../base.entity';
 import OfferorAddress from './types/offeror-address';
 import OfferorReputation from './types/offeror-reputation';
-import User from 'src/auth/user.entity';
-import Request from 'src/requests/request.entity';
+import User from '../auth/user.entity';
+import Request from '../requests/request.entity';
 
 @Entity('offerors')
 export default class Offeror extends BaseEntity {

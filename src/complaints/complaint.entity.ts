@@ -6,9 +6,9 @@ import {
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
-import BaseEntity from 'src/base.entity';
-import User from 'src/auth/user.entity';
-import Incident from 'src/incidents/incident.entity';
+import BaseEntity from '../base.entity';
+import User from '../auth/user.entity';
+import Incident from '../incidents/incident.entity';
 
 @Entity('complaints')
 @Index(['author', 'incident'])

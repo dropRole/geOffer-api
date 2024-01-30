@@ -4,12 +4,12 @@ import {
   ConflictException,
   UnauthorizedException,
 } from '@nestjs/common';
-import BaseService from 'src/base.service';
+import BaseService from '../base.service';
 import User from './user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource, QueryRunner } from 'typeorm';
 import * as bcrypt from 'bcrypt';
-import Offeree from 'src/offerees/offeree.entity';
+import Offeree from '../offerees/offeree.entity';
 import SignupDTO from './dto/signup.dto';
 import JwtPayload from './types/jwt.payload';
 import { JwtService } from '@nestjs/jwt';
