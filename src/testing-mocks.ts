@@ -251,4 +251,10 @@ mockProhibitionsRepo = [
   },
 ];
 
-export { JWTSecret, mockUsersRepo, mockOffereesRepo };
+export {
+  JWTSecret,
+  mockUsersRepo,
+  mockOffereesRepo,
+  mockProhibitionsRepo,
+  mockRequestsRepo,
+};

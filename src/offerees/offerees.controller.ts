@@ -2,10 +2,10 @@ import { Controller, Get, Query, Body, Patch } from '@nestjs/common';
 import { OffereesService } from './offerees.service';
 import Offeree from './offeree.entity';
 import ObtainOffereesDTO from './dto/obtain-offerees.dto';
-import { PrivilegedRoute } from 'src/auth/privileged-route.decorator';
-import ExtractUser from 'src/auth/extract-user.decorator';
+import { PrivilegedRoute } from '../auth/privileged-route.decorator';
+import ExtractUser from '../auth/extract-user.decorator';
 import AmendBasicsDTO from './dto/amend-basics.dto';
-import User from 'src/auth/user.entity';
+import User from '../auth/user.entity';
 
 @Controller('offerees')
 export class OffereesController {
