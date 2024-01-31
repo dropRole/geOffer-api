@@ -39,7 +39,7 @@ describe('AuthController', () => {
 
                 if (exists)
                   throw new ConflictException(
-                    `Useranme ${username} is already in use.`,
+                    `Username ${username} is already in use.`,
                   );
 
                 const { password, name, surname, email } = signupDTO;
@@ -171,11 +171,11 @@ describe('AuthController', () => {
   describe('signup', () => {
     it('should be void', () => {
       const dto: SignupDTO = {
-        username: 'babydoe',
-        password: 'babyDoe@23',
-        name: 'Baby',
-        surname: 'Doe',
-        email: 'babydoe@email.com',
+        username: 'ignaciovarga',
+        password: 'ignacioVarga@71',
+        name: 'Ignacio',
+        surname: 'Varga',
+        email: 'ignaciovarga@email.com',
       };
 
       expect(controller.signup(dto)).toBeUndefined();
@@ -183,15 +183,15 @@ describe('AuthController', () => {
 
     it('should throw a ConflictException', () => {
       const dto: SignupDTO = {
-        username: 'johndoe',
-        password: 'babyDoe@23',
-        name: 'Baby',
-        surname: 'Doe',
-        email: 'babydoe@email.com',
+        username: 'mikeehrmantraut',
+        password: 'ignacioVarga@71',
+        name: 'Ignacio',
+        surname: 'Varga',
+        email: 'ignaciovarga@email.com',
       };
 
       expect(() => controller.signup(dto)).toThrow(
-        `Useranme ${dto.username} is already in use.`,
+        `Username ${dto.username} is already in use.`,
       );
     });
   });
@@ -200,7 +200,7 @@ describe('AuthController', () => {
     it('should return an object holding type, value and expire properties', () => {
       const dto: LoginDTO = {
         username: usersRepo[0].username,
-        password: 'johnDoe@23',
+        password: 'gusFring@58',
       };
 
       expect(controller.login(dto)).toMatchObject<Token>({
@@ -268,8 +268,8 @@ describe('AuthController', () => {
     it('should be void', () => {
       expect(
         controller.alterPassword(usersRepo[0], {
-          password: 'johnDoe@23',
-          newPassword: 'johnDoe@23_alter',
+          password: 'gusFring@58',
+          newPassword: 'gusFring@58_alter',
         }),
       ).toBeUndefined();
     });
