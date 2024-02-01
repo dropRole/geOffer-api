@@ -43,23 +43,23 @@ mockUsersRepo = [
     password: bcrypt.hashSync('lalosalamanca@60', 9),
     created: new Date().toLocaleString(),
     incidents: [mockIncidentsRepo[1]],
-    complaints: [mockComplaintsRepo[1]],
+    complaints: [],
   },
   {
     username: 'lospolloshermanos',
     privilege: 'OFFEROR',
     password: bcrypt.hashSync('losPOLLOShermanos@17', 9),
     created: new Date().toLocaleString(),
-    incidents: [],
-    complaints: [],
+    incidents: [mockIncidentsRepo[0]],
+    complaints: [mockComplaintsRepo[1]],
   },
   {
     username: 'elmichoacano',
     privilege: 'OFFEROR',
     password: bcrypt.hashSync('elMichoacano@86', 9),
     created: new Date().toLocaleString(),
-    incidents: [],
-    complaints: [],
+    incidents: [mockIncidentsRepo[1]],
+    complaints: [mockComplaintsRepo[2]],
   },
 ];
 
@@ -196,7 +196,7 @@ mockIncidentsRepo = [
     openedBy: mockUsersRepo[4],
     conclusion: 'True as hell.',
     reservation: mockReservationsRepo[1],
-    complaints: [],
+    complaints: [mockComplaintsRepo[2]],
   },
 ];
 
