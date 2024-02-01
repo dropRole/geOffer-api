@@ -6,14 +6,14 @@ import {
   UnauthorizedException,
   forwardRef,
 } from '@nestjs/common';
-import BaseService from 'src/base.service';
+import BaseService from '../base.service';
 import Incident from './incident.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, SelectQueryBuilder } from 'typeorm';
-import User from 'src/auth/user.entity';
+import User from '../auth/user.entity';
 import OpenIncidentDTO from './dto/open-incident.dto';
-import { ReservationsService } from 'src/reservations/reservations.service';
-import Reservation from 'src/reservations/reservation.entity';
+import { ReservationsService } from '../reservations/reservations.service';
+import Reservation from '../reservations/reservation.entity';
 import ObtainIncidentsDTO from './dto/obtain-incidents.dto';
 import RenameIncidentDTO from './dto/rename-incident.dto';
 import AlterIncidentStatusDTO from './dto/alter-incident-status.dto';

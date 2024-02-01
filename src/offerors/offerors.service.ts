@@ -5,7 +5,7 @@ import {
   Inject,
   forwardRef,
 } from '@nestjs/common';
-import BaseService from 'src/base.service';
+import BaseService from '../base.service';
 import Offeror from './offeror.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
@@ -15,15 +15,15 @@ import {
   Repository,
 } from 'typeorm';
 import RecordOfferorDTO from './dto/record-offeror.dto';
-import { AuthService } from 'src/auth/auth.service';
-import User from 'src/auth/user.entity';
+import { AuthService } from '../auth/auth.service';
+import User from '../auth/user.entity';
 import * as bcrypt from 'bcrypt';
 import ObtainOfferorsDTO from './dto/obtain-offerors.dto';
 import OfferorReputation from './types/offeror-reputation';
 import AmendBusinessInfoDTO from './dto/amend-business-info.dto';
 import AlterReputationDTO from './dto/alter-reputation.dto';
-import Reservation from 'src/reservations/reservation.entity';
-import { ReservationsService } from 'src/reservations/reservations.service';
+import Reservation from '../reservations/reservation.entity';
+import { ReservationsService } from '../reservations/reservations.service';
 
 @Injectable()
 export class OfferorsService extends BaseService<Offeror> {

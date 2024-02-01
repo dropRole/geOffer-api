@@ -257,4 +257,6 @@ export {
   mockOffereesRepo,
   mockProhibitionsRepo,
   mockRequestsRepo,
+  mockOfferorsRepo,
+  mockReservationsRepo,
 };

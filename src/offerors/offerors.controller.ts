@@ -8,15 +8,15 @@ import {
   Param,
 } from '@nestjs/common';
 import { OfferorsService } from './offerors.service';
-import { PrivilegedRoute } from 'src/auth/privileged-route.decorator';
+import { PrivilegedRoute } from '../auth/privileged-route.decorator';
 import RecordOfferorDTO from './dto/record-offeror.dto';
 import Offeror from './offeror.entity';
 import ObtainOfferorsDTO from './dto/obtain-offerors.dto';
-import ExtractUser from 'src/auth/extract-user.decorator';
+import ExtractUser from '../auth/extract-user.decorator';
 import OfferorReputation from './types/offeror-reputation';
 import AmendBusinessInfoDTO from './dto/amend-business-info.dto';
 import AlterReputationDTO from './dto/alter-reputation.dto';
-import User from 'src/auth/user.entity';
+import User from '../auth/user.entity';
 
 @Controller('offerors')
 export class OfferorsController {
