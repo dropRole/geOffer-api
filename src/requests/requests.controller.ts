@@ -9,9 +9,9 @@ import {
   Delete,
 } from '@nestjs/common';
 import { RequestsService } from './requests.service';
-import { PrivilegedRoute } from 'src/auth/privileged-route.decorator';
-import ExtractUser from 'src/auth/extract-user.decorator';
-import User from 'src/auth/user.entity';
+import { PrivilegedRoute } from '../auth/privileged-route.decorator';
+import ExtractUser from '../auth/extract-user.decorator';
+import User from '../auth/user.entity';
 import MakeRequestDTO from './dto/make-request.dto';
 import Request from './request.entity';
 import ObtainRequestsDTO from './dto/obtain-requests.dto';
