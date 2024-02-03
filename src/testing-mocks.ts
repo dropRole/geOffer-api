@@ -158,6 +158,21 @@ mockRequestsRepo = [
     offeree: mockOffereesRepo[1],
     offeror: mockOfferorsRepo[1],
   },
+  {
+    id: uuidv4(),
+    seats: 2,
+    cause: 'Grandfather and his granddaughter',
+    note: 'Time together.',
+    requestedAt: new Date().toString(),
+    requestedFor: new Date(
+      new Date().setHours(new Date().getHours() + 0.5),
+    ).toString(),
+    assessment: new Date(
+      new Date().setHours(new Date().getHours() + 1.5),
+    ).toString(),
+    offeree: mockOffereesRepo[1],
+    offeror: mockOfferorsRepo[1],
+  },
 ];
 
 mockReservationsRepo = [
@@ -259,4 +274,5 @@ export {
   mockRequestsRepo,
   mockOfferorsRepo,
   mockReservationsRepo,
+  mockIncidentsRepo,
 };

@@ -8,9 +8,9 @@ import {
   Param,
 } from '@nestjs/common';
 import { ReservationsService } from './reservations.service';
-import { PrivilegedRoute } from 'src/auth/privileged-route.decorator';
-import ExtractUser from 'src/auth/extract-user.decorator';
-import User from 'src/auth/user.entity';
+import { PrivilegedRoute } from '../auth/privileged-route.decorator';
+import ExtractUser from '../auth/extract-user.decorator';
+import User from '../auth/user.entity';
 import MakeReservationDTO from './dto/make-reservation.dto';
 import Reservation from './reservation.entity';
 import ObtainReservationsDTO from './dto/obtain-reservations.dto';
