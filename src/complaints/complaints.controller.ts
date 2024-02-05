@@ -9,9 +9,9 @@ import {
   Query,
 } from '@nestjs/common';
 import { ComplaintsService } from './complaints.service';
-import { PrivilegedRoute } from 'src/auth/privileged-route.decorator';
-import ExtractUser from 'src/auth/extract-user.decorator';
-import User from 'src/auth/user.entity';
+import { PrivilegedRoute } from '../auth/privileged-route.decorator';
+import ExtractUser from '../auth/extract-user.decorator';
+import User from '../auth/user.entity';
 import WriteComplaintDTO from './dto/write-complaint.dto';
 import Complaint from './complaint.entity';
 import ObtainComplaintsDTO from './dto/obtain-complaints.dto';

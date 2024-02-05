@@ -213,6 +213,16 @@ mockIncidentsRepo = [
     reservation: mockReservationsRepo[1],
     complaints: [mockComplaintsRepo[2]],
   },
+  {
+    id: uuidv4(),
+    title: 'Customer threatens.',
+    status: 'PENDING',
+    opened: new Date().toString(),
+    openedBy: mockUsersRepo[1],
+    conclusion: undefined,
+    reservation: mockReservationsRepo[0],
+    complaints: [],
+  },
 ];
 
 mockComplaintsRepo = [
@@ -275,4 +285,5 @@ export {
   mockOfferorsRepo,
   mockReservationsRepo,
   mockIncidentsRepo,
+  mockComplaintsRepo,
 };
