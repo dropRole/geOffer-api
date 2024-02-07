@@ -8,6 +8,8 @@ import Reservation from './reservations/reservation.entity';
 import Incident from './incidents/incident.entity';
 import Complaint from './complaints/complaint.entity';
 import Prohibition from './prohibitions/prohibition.entity';
+import { ReversedLocation } from './locationiq/types/reversed-location';
+import SearchedLocation from './locationiq/types/searched-location';
 
 const JWTSecret = 'G2DEKyvZ49YLLgi7r/MGEC17W+pEFqdEeOlcouS8lvw=';
 
@@ -19,6 +21,38 @@ let mockReservationsRepo: Reservation[] = [];
 let mockIncidentsRepo: Incident[] = [];
 let mockComplaintsRepo: Complaint[] = [];
 let mockProhibitionsRepo: Prohibition[] = [];
+let reverseGeocodingAPIResponse: ReversedLocation = {
+  place_id: '295877384',
+  licence: 'https://locationiq.com/attribution',
+  osm_type: 'way',
+  osm_id: '940433091',
+  lat: '43.88325365',
+  lon: '20.34742655',
+  display_name:
+    '21, Kneza Vasa Popovica, MZ 3. decembar, Cacak, Čačak, City of Čačak, Moravica Administrative District, Central Serbia, 32000, Serbia',
+  address: {
+    house_number: '21',
+    road: 'Kneza Vasa Popovica',
+    suburb: 'MZ 3. decembar',
+    city_district: 'Cacak',
+    city: 'Čačak',
+    county: 'Moravica Administrative District',
+    state: 'Central Serbia',
+    postcode: '32000',
+    country: 'Serbia',
+    country_code: 'rs',
+  },
+  boundingbox: ['43.8831878', '43.8833195', '20.3473323', '20.3475208'],
+};
+let forwardGeocodingAPIResponse: SearchedLocation = {
+  place_id: '331489194615',
+  licence: 'https://locationiq.com/attribution',
+  lat: '43.883239',
+  lon: '20.347267',
+  display_name: 'Kneza Vase Popovica, Čačak, Morava, Serbia',
+  boundingbox: ['43.880705', '43.885568', '20.346109', '20.34911'],
+  importance: 0.2,
+};
 
 mockUsersRepo = [
   {
@@ -286,4 +320,6 @@ export {
   mockReservationsRepo,
   mockIncidentsRepo,
   mockComplaintsRepo,
+  reverseGeocodingAPIResponse,
+  forwardGeocodingAPIResponse,
 };
