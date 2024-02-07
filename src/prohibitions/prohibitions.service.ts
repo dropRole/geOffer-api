@@ -3,16 +3,16 @@ import {
   ConflictException,
   InternalServerErrorException,
 } from '@nestjs/common';
-import BaseService from 'src/base.service';
+import BaseService from '../base.service';
 import Prohibition from './prohibition.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, SelectQueryBuilder } from 'typeorm';
 import DeclareProhibitionDTO from './dto/declare-prohibition.dto';
-import { IncidentsService } from 'src/incidents/incidents.service';
-import Incident from 'src/incidents/incident.entity';
+import { IncidentsService } from '../incidents/incidents.service';
+import Incident from '../incidents/incident.entity';
 import { InjectQueue } from '@nestjs/bull';
 import { Job, Queue } from 'bull';
-import User from 'src/auth/user.entity';
+import User from '../auth/user.entity';
 import ObtainProhibitionsDTO from './dto/obtain-prohibitions.dto';
 import AlterTimeframeDTO from './dto/alter-timeframe.dto';
 
