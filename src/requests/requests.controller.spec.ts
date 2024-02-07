@@ -343,7 +343,7 @@ describe('RequestsController', () => {
       expect(() =>
         controller.revokeRequest(
           requestsRepo[requestsRepo.length - 1].id,
-          requestsRepo[requestsRepo.length - 2].offeree.user,
+          requestsRepo[0].offeree.user,
         ),
       ).toThrow(
         `You haven't made the ${
