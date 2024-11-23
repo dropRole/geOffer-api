@@ -1,8 +1,9 @@
 import { Entity, Column, OneToOne, JoinColumn, OneToMany } from 'typeorm';
 import BaseEntity from 'src/base.entity';
-import { OfferorAddress, OfferorReputation } from './types';
+import { OfferorAddress, OfferorCoordinates, OfferorReputation } from './types';
 import User from 'src/auth/user.entity';
 import Request from 'src/requests/request.entity';
+import OfferorImage from './offeror-images.entity';
 
 @Entity('offerors')
 export default class Offeror extends BaseEntity {
@@ -12,11 +13,17 @@ export default class Offeror extends BaseEntity {
   @Column({ type: 'jsonb' })
   address: OfferorAddress;
 
+  @Column({ type: 'jsonb' })
+  coordinates: OfferorCoordinates;
+
   @Column({ type: 'varchar', length: 15 })
   telephone: string;
 
   @Column({ type: 'varchar', length: 254 })
   email: string;
+
+  @Column({ type: 'text' })
+  offers: string;
 
   @Column({ type: 'text', nullable: true })
   businessHours: string;
@@ -42,4 +49,7 @@ export default class Offeror extends BaseEntity {
 
   @OneToMany((_type) => Request, (request) => request.offeror)
   requests: Request[];
+
+  @OneToMany((_type) => OfferorImage, (offerorImage) => offerorImage.offeror)
+  images: OfferorImage[];
 }
