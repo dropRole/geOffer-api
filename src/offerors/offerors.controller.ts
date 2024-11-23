@@ -13,7 +13,7 @@ import RecordOfferorDTO from './dto/record-offeror.dto';
 import Offeror from './offeror.entity';
 import ObtainOfferorsDTO from './dto/obtain-offerors.dto';
 import ExtractUser from 'src/auth/extract-user.decorator';
-import OfferorReputation from './types/offeror-reputation';
+import { OfferorReputation } from './types';
 import AmendBusinessInfoDTO from './dto/amend-business-info.dto';
 import AlterReputationDTO from './dto/alter-reputation.dto';
 import User from 'src/auth/user.entity';

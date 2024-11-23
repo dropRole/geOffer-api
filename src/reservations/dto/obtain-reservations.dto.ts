@@ -5,7 +5,7 @@ import {
   IsNotEmpty,
   IsNumberString,
 } from 'class-validator';
-import { ReservationPeriod } from '../types/reservation-period';
+import { ReservationPeriod } from '../types';
 
 export default class ObtainReservationsDTO {
   @IsOptional()

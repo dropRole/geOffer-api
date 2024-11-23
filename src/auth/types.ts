@@ -4,4 +4,10 @@ type JwtPayload = {
   username: string;
 };
 
-export { UserPrivilege, JwtPayload };
+type Token = {
+  type: 'access' | 'refresh';
+  value: string;
+  expire: string;
+};
+
+export { UserPrivilege, JwtPayload, Token };
