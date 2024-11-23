@@ -10,4 +10,10 @@ type OfferorAddress = {
   country?: string;
 };
 
-export default OfferorAddress;
+type OfferorReputation = {
+  responsiveness: number;
+  compliance: number;
+  timeliness: number;
+};
+
+export { OfferorAddress, OfferorReputation };

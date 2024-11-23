@@ -8,7 +8,7 @@ import {
   OneToMany,
 } from 'typeorm';
 import BaseEntity from 'src/base.entity';
-import IncidentStatus from './types/incident-status';
+import IncidentStatus from './types';
 import User from 'src/auth/user.entity';
 import Reservation from 'src/reservations/reservation.entity';
 import Complaint from 'src/complaints/complaint.entity';
