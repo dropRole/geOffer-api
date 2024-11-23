@@ -1,10 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import ReverseDTO from './dto/reverse.dto';
-import { ReversedLocation } from './types/reversed-location';
+import { ReversedLocation, SearchedLocation } from './types';
 import { Observable, map } from 'rxjs';
 import { HttpService } from '@nestjs/axios';
 import SearchDTO from './dto/search.dto';
-import SearchedLocation from './types/searched-location';
 
 @Injectable()
 export class LocationiqService {

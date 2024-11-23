@@ -1,5 +1,5 @@
 import { IsOptional, IsIn } from 'class-validator';
-import IncidentStatus from '../types/incident-status';
+import IncidentStatus from '../types';
 
 export default class ObtainIncidentsDTO {
   @IsOptional()

@@ -19,7 +19,7 @@ import { AuthService } from 'src/auth/auth.service';
 import User from 'src/auth/user.entity';
 import * as bcrypt from 'bcrypt';
 import ObtainOfferorsDTO from './dto/obtain-offerors.dto';
-import OfferorReputation from './types/offeror-reputation';
+import { OfferorReputation } from './types';
 import AmendBusinessInfoDTO from './dto/amend-business-info.dto';
 import AlterReputationDTO from './dto/alter-reputation.dto';
 import Reservation from 'src/reservations/reservation.entity';
@@ -167,7 +167,18 @@ export class OfferorsService extends BaseService<Offeror> {
 
   async claimBusinessInfo(
     user: User,
-  ): Promise<Omit<Offeror, 'id' | 'reputation' | 'user' | 'requests'>> {
+  ): Promise<
+    Omit<
+      Offeror,
+      | 'id'
+      | 'coordinates'
+      | 'reputation'
+      | 'offers'
+      | 'images'
+      | 'user'
+      | 'requests'
+    >
+  > {
     const { name, address, telephone, email, businessHours } =
       await this.obtainOneBy({
         user: { username: user.username },

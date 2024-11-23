@@ -17,7 +17,7 @@ import Reservation from 'src/reservations/reservation.entity';
 import ObtainIncidentsDTO from './dto/obtain-incidents.dto';
 import RenameIncidentDTO from './dto/rename-incident.dto';
 import AlterIncidentStatusDTO from './dto/alter-incident-status.dto';
-import IncidentStatus from './types/incident-status';
+import IncidentStatus from './types';
 
 @Injectable()
 export class IncidentsService extends BaseService<Incident> {
