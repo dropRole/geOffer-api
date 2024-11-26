@@ -25,6 +25,7 @@ import User from 'src/auth/user.entity';
 import { createReadStream } from 'fs';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { PublicRoute } from 'src/auth/public-route.decorator';
+import { AlterOfferingDTO } from './dto/alter-offering.dto';
 
 @Controller('offerors')
 export class OfferorsController {
@@ -98,7 +99,7 @@ export class OfferorsController {
   @PrivilegedRoute('OFFEROR')
   alterOffering(
     @ExtractUser() user: User,
-    @Body('offer') offer: string,
+    @Body() alterOfferingDTO: AlterOfferingDTO,
   ): Promise<void> {
     return;
   }
