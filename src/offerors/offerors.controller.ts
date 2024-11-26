@@ -24,6 +24,7 @@ import AlterReputationDTO from './dto/alter-reputation.dto';
 import User from 'src/auth/user.entity';
 import { createReadStream } from 'fs';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
+import { PublicRoute } from 'src/auth/public-route.decorator';
 
 @Controller('offerors')
 export class OfferorsController {
@@ -72,13 +73,27 @@ export class OfferorsController {
   @PrivilegedRoute('OFFEROR')
   claimBusinessInfo(
     @ExtractUser() user: User,
-  ): Promise<Omit<Offeror, 'id' | 'reputation' | 'user' | 'requests'>> {
+  ): Promise<
+    Omit<
+      Offeror,
+      'id' | 'coordinates' | 'offers' | 'reputation' | 'user' | 'requests'
+    >
+  > {
     return;
   }
 
   @Get('/reputation')
   @PrivilegedRoute('OFFEROR')
   claimReputation(@ExtractUser() user: User): Promise<OfferorReputation> {
+    return;
+  }
+
+  @Patch('/offer')
+  @PrivilegedRoute('OFFEROR')
+  alterOffering(
+    @ExtractUser() user: User,
+    @Body('offer') offer: string,
+  ): Promise<void> {
     return;
   }
 
