@@ -76,7 +76,13 @@ export class OfferorsController {
   ): Promise<
     Omit<
       Offeror,
-      'id' | 'coordinates' | 'offers' | 'reputation' | 'user' | 'requests'
+      | 'id'
+      | 'coordinates'
+      | 'offers'
+      | 'reputation'
+      | 'user'
+      | 'requests'
+      | 'images'
     >
   > {
     return;
