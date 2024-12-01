@@ -24,12 +24,17 @@ import AmendBusinessInfoDTO from './dto/amend-business-info.dto';
 import AlterReputationDTO from './dto/alter-reputation.dto';
 import Reservation from 'src/reservations/reservation.entity';
 import { ReservationsService } from 'src/reservations/reservations.service';
+import OfferorImage from './offeror-images.entity';
+import * as aws from 'aws-sdk';
+import { AlterOfferingDTO } from './dto/alter-offering.dto';
 
 @Injectable()
 export class OfferorsService extends BaseService<Offeror> {
   constructor(
     @InjectRepository(Offeror)
     offerorsRepo: Repository<Offeror>,
+    @InjectRepository(OfferorImage)
+    private offerorImagesRepo: Repository<OfferorImage>,
     private authService: AuthService,
     private dataSource: DataSource,
     @Inject(forwardRef(() => ReservationsService))
@@ -40,7 +45,8 @@ export class OfferorsService extends BaseService<Offeror> {
 
   async recordOfferor(
     recordOfferorDTO: RecordOfferorDTO,
-  ): Promise<{ id: string }> {
+    files: { highlight: Express.Multer.File; gallery: Express.Multer.File[] },
+  ): Promise<{ id: string; uploadErrors: string }> {
     const { username } = recordOfferorDTO;
 
     let user: User;
@@ -50,8 +56,16 @@ export class OfferorsService extends BaseService<Offeror> {
         username,
       });
     } catch (error) {
-      const { name, address, telephone, email, businessHours, password } =
-        recordOfferorDTO;
+      const {
+        name,
+        address,
+        coordinates,
+        telephone,
+        email,
+        offers,
+        businessHours,
+        password,
+      } = recordOfferorDTO;
 
       const hash: string = await bcrypt.hash(password, 9);
 
@@ -64,11 +78,14 @@ export class OfferorsService extends BaseService<Offeror> {
       const offeror: Offeror = this.repo.create({
         name,
         address: JSON.parse(address),
+        coordinates: JSON.parse(coordinates),
         telephone,
         email,
+        offers,
         businessHours,
         user,
         requests: [],
+        images: [],
       });
 
       const queryRunner: QueryRunner = this.dataSource.createQueryRunner();
@@ -78,25 +95,110 @@ export class OfferorsService extends BaseService<Offeror> {
 
       try {
         await queryRunner.manager.insert(User, user);
-        await queryRunner.manager.insert(Offeror, offeror);
-
-        await queryRunner.commitTransaction();
       } catch (error) {
         await queryRunner.rollbackTransaction();
 
         this.dataLoggerService.error(
-          `Error during User and Offeror data transaction: ${error.message}`,
+          `Error during user insertion: ${error.message}`,
         );
 
         throw new InternalServerErrorException(
-          `Error during data transaction: ${error.message}`,
+          `Error during user insertion: ${error.message}`,
         );
+      }
+
+      try {
+        await queryRunner.manager.insert(Offeror, offeror);
+      } catch (error) {
+        await queryRunner.rollbackTransaction();
+
+        this.dataLoggerService.error(
+          `Error during offeror insertion: ${error.message}`,
+        );
+
+        throw new InternalServerErrorException(
+          `Error during offeror insertion: ${error.message}`,
+        );
+      }
+
+      await queryRunner.commitTransaction();
+
+      let highlightImageUploadErrors = '';
+
+      let galleryImagesUploadErrors = '';
+
+      if (!files.highlight[0].mimetype.match(/image/g))
+        highlightImageUploadErrors = `The highlight image ${files.highlight[0].originalname} isn't of the image/* mimetype.`;
+
+      for (const galleryImage of files.gallery) {
+        if (!galleryImage.mimetype.match(/image/g))
+          galleryImagesUploadErrors += `The gallery image ${galleryImage.originalname} isn't of the image/* mimetype.`;
+      }
+
+      const s3 = new aws.S3({
+        accessKeyId: process.env.AWS_S3_ACCESS_KEY,
+        secretAccessKey: process.env.AWS_S3_SECRET_ACCESS_KEY,
+      });
+
+      const offerorHighlightImage: OfferorImage = this.offerorImagesRepo.create(
+        {
+          offeror,
+          type: 'HIGHLIGHT',
+          destination: `${process.env.AWS_S3_BUCKET_URL}/highlight/${files.highlight[0].originalname}`,
+        },
+      );
+
+      if (highlightImageUploadErrors === '')
+        try {
+          await this.offerorImagesRepo.insert(offerorHighlightImage);
+
+          await s3
+            .upload({
+              Bucket: process.env.AWS_S3_BUCKET,
+              Key: `highlight/${files.highlight[0].originalname}`,
+              Body: files.highlight[0].buffer,
+              ACL: 'public-read',
+              ContentType: files.highlight[0].mimetype,
+            })
+            .promise();
+        } catch (error) {
+          highlightImageUploadErrors += error.message;
+        }
+
+      for (const galleryImage of files.gallery) {
+        const offerorGalleryImage: OfferorImage = this.offerorImagesRepo.create(
+          {
+            offeror,
+            type: 'GALLERY',
+            destination: `${process.env.AWS_S3_BUCKET_URL}/gallery/${files.highlight[0].originalname}`,
+          },
+        );
+
+        try {
+          await this.offerorImagesRepo.insert(offerorGalleryImage);
+
+          await s3
+            .upload({
+              Bucket: process.env.AWS_S3_BUCKET,
+              Key: `gallery/${galleryImage.originalname}`,
+              Body: galleryImage.buffer,
+              ACL: 'public-read',
+              ContentType: galleryImage.mimetype,
+            })
+            .promise();
+        } catch (error) {
+          galleryImagesUploadErrors += error.message;
+        }
       }
 
       this.dataLoggerService.create(user.constructor.name, user.username);
       this.dataLoggerService.create(offeror.constructor.name, offeror.id);
 
-      return { id: offeror.id };
+      return {
+        id: offeror.id,
+        uploadErrors:
+          `${highlightImageUploadErrors} ${galleryImagesUploadErrors}`.trim(),
+      };
     }
 
     throw new ConflictException(`Username ${username} is already in use.`);
@@ -243,6 +345,35 @@ export class OfferorsService extends BaseService<Offeror> {
       } } => { name: ${name}, address: ${JSON.stringify(
         offeror.address,
       )}, telephone: ${telephone}, email: ${email}, businessHours: ${businessHours} }`,
+    );
+  }
+
+  async alterOffering(
+    user: User,
+    alterOfferingDTO: AlterOfferingDTO,
+  ): Promise<void> {
+    const offeror: Offeror = await this.obtainOneBy({
+      user: { username: user.username },
+    });
+
+    const { offers } = alterOfferingDTO;
+
+    try {
+      await this.repo.update({ user: { username: user.username } }, { offers });
+    } catch (error) {
+      this.dataLoggerService.error(
+        `Error during Offeror record update: ${error.message}`,
+      );
+
+      throw new InternalServerErrorException(
+        `Error during data update: ${error.message}`,
+      );
+    }
+
+    this.dataLoggerService.update(
+      offeror.constructor.name,
+      offeror.id,
+      `{ offers: ${offeror.offers} } => { offers: ${offers} }`,
     );
   }
 

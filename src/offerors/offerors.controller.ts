@@ -24,7 +24,6 @@ import AlterReputationDTO from './dto/alter-reputation.dto';
 import User from 'src/auth/user.entity';
 import { createReadStream } from 'fs';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
-import { PublicRoute } from 'src/auth/public-route.decorator';
 import { AlterOfferingDTO } from './dto/alter-offering.dto';
 
 @Controller('offerors')
@@ -41,14 +40,10 @@ export class OfferorsController {
   )
   recordOfferor(
     @Body() recordOfferorDTO: RecordOfferorDTO,
-    @UploadedFiles(
-      new ParseFilePipe({
-        validators: [new FileTypeValidator({ fileType: 'image/*' })],
-      }),
-    )
+    @UploadedFiles()
     files: { highlight: Express.Multer.File; gallery: Express.Multer.File[] },
-  ): Promise<{ id: string }> {
-    return this.offerorsService.recordOfferor(recordOfferorDTO);
+  ): Promise<{ id: string; uploadErrors: string }> {
+    return this.offerorsService.recordOfferor(recordOfferorDTO, files);
   }
 
   @Get()
@@ -86,7 +81,7 @@ export class OfferorsController {
       | 'images'
     >
   > {
-    return;
+    return this.offerorsService.claimBusinessInfo(user);
   }
 
   @Get('/reputation')
@@ -101,7 +96,7 @@ export class OfferorsController {
     @ExtractUser() user: User,
     @Body() alterOfferingDTO: AlterOfferingDTO,
   ): Promise<void> {
-    return;
+    return this.offerorsService.alterOffering(user, alterOfferingDTO);
   }
 
   @Patch('/business-info')
