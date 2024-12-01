@@ -41,13 +41,9 @@ export class OfferorsController {
   )
   recordOfferor(
     @Body() recordOfferorDTO: RecordOfferorDTO,
-    @UploadedFiles(
-      new ParseFilePipe({
-        validators: [new FileTypeValidator({ fileType: 'image/*' })],
-      }),
-    )
+    @UploadedFiles()
     files: { highlight: Express.Multer.File; gallery: Express.Multer.File[] },
-  ): Promise<{ id: string }> {
+  ): Promise<{ id: string; uploadErrors: string }> {
     return;
   }
 
