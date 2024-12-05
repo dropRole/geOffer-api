@@ -4,15 +4,10 @@ import { OfferorsService } from './offerors.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import Offeror from './offeror.entity';
 import OfferorImage from './offeror-images.entity';
-import { AuthModule } from 'src/auth/auth.module';
-import { ReservationsModule } from 'src/reservations/reservations.module';
+import { OfferorEvent } from './offeror-event.entity';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([Offeror, OfferorImage]),
-    AuthModule,
-    forwardRef(() => ReservationsModule),
-  ],
+  imports: [TypeOrmModule.forFeature([Offeror, OfferorImage, OfferorEvent])],
   controllers: [OfferorsController],
   providers: [OfferorsService],
   exports: [OfferorsService],
