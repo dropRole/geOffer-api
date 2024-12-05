@@ -10,7 +10,7 @@ import {
 
 export default class MakeRequestDTO {
   @IsIn(['Dinning', 'Drinking', 'Ticket selling'])
-  service: number;
+  service: string;
 
   @IsOptional()
   @IsString()
