@@ -16,8 +16,11 @@ type OfferorCoordinates = {
 };
 
 type OfferorService = {
-  type: 'Restaurant' | 'Café/Pub' | 'Movie Theater';
-  description: string;
+  category: 'Restaurant' | 'Café/Pub' | 'Movie Theater';
+  service: {
+    name: 'Dinning' | 'Drinking' | 'Ticket selling';
+    description: string;
+  };
 };
 
 type OfferorBusinessHours = {
