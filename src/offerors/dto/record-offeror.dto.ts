@@ -28,9 +28,8 @@ export default class RecordOfferorDTO {
   @MaxLength(254)
   email: string;
 
-  @IsString()
-  @IsNotEmpty()
-  offers: string;
+  @IsJSON()
+  service: string;
 
   @IsOptional()
   @IsString()
