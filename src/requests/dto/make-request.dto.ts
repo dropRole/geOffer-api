@@ -5,21 +5,18 @@ import {
   IsOptional,
   IsDateString,
   IsUUID,
+  IsIn,
 } from 'class-validator';
 
 export default class MakeRequestDTO {
-  @IsNotEmpty()
-  @IsNumberString()
-  seats: number;
-
-  @IsNotEmpty()
-  @IsString()
-  cause: string;
+  @IsIn(['Dinning', 'Drinking', 'Ticket selling'])
+  service: string;
 
   @IsOptional()
   @IsString()
   note?: string;
 
+  @IsOptional()
   @IsDateString()
   requestedFor: string;
 
