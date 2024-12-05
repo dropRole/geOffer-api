@@ -9,8 +9,7 @@ import {
   StreamableFile,
   UseInterceptors,
   UploadedFiles,
-  ParseFilePipe,
-  FileTypeValidator,
+  Delete,
 } from '@nestjs/common';
 import { OfferorsService } from './offerors.service';
 import { PrivilegedRoute } from 'src/auth/privileged-route.decorator';
@@ -26,6 +25,8 @@ import { createReadStream } from 'fs';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { PublicRoute } from 'src/auth/public-route.decorator';
 import { AlterOfferingDTO } from './dto/alter-offering.dto';
+import { AmendServiceDTO } from './dto/amend-service.dto';
+import { DeleteGalleryImagesDTO } from './dto/delete-gallery-images.dto';
 
 @Controller('offerors')
 export class OfferorsController {
@@ -43,7 +44,20 @@ export class OfferorsController {
     @Body() recordOfferorDTO: RecordOfferorDTO,
     @UploadedFiles()
     files: { highlight: Express.Multer.File; gallery: Express.Multer.File[] },
-  ): Promise<{ id: string; uploadErrors: string }> {
+  ): Promise<{ id: string; uploadResults: string }> {
+    return;
+  }
+
+  @Post('/images/gallery')
+  @PrivilegedRoute('OFFEROR')
+  @UseInterceptors(FileFieldsInterceptor([{ name: 'gallery', maxCount: 10 }]))
+  addGalleryImages(
+    @ExtractUser() user: User,
+    @UploadedFiles()
+    files: {
+      gallery: Express.Multer.File[];
+    },
+  ): Promise<{ uploadResults: string }> {
     return;
   }
 
@@ -53,17 +67,6 @@ export class OfferorsController {
     @Query() obtainOfferorsDTO: ObtainOfferorsDTO,
   ): Promise<Offeror[]> {
     return;
-  }
-
-  @Get('/:id/image')
-  obtainOfferorImage(
-    @Param()
-    @Query('destination')
-    destination: string,
-  ): StreamableFile {
-    const file = createReadStream(destination);
-
-    return new StreamableFile(file);
   }
 
   @Get('/business-info')
@@ -80,6 +83,7 @@ export class OfferorsController {
       | 'user'
       | 'requests'
       | 'images'
+      | 'events'
     >
   > {
     return;
@@ -91,11 +95,11 @@ export class OfferorsController {
     return;
   }
 
-  @Patch('/offer')
+  @Patch('/service')
   @PrivilegedRoute('OFFEROR')
-  alterOffering(
+  amendService(
     @ExtractUser() user: User,
-    @Body() alterOfferingDTO: AlterOfferingDTO,
+    @Body() amendServiceDTO: AmendServiceDTO,
   ): Promise<void> {
     return;
   }
@@ -115,6 +119,28 @@ export class OfferorsController {
     @Param('id') id: string,
     @Body() alterReputationDTO: AlterReputationDTO,
   ): Promise<{ id: string }> {
+    return;
+  }
+
+  @Patch('/images/highlight')
+  @PrivilegedRoute('OFFEROR')
+  @UseInterceptors(FileFieldsInterceptor([{ name: 'highlight', maxCount: 1 }]))
+  changeHighlightImage(
+    @ExtractUser() user: User,
+    @UploadedFiles()
+    files: {
+      highlight: Express.Multer.File;
+    },
+  ): Promise<{ changeResult: string }> {
+    return;
+  }
+
+  @Delete('/images/gallery')
+  @PrivilegedRoute('OFFEROR')
+  deleteGalleryImages(
+    @ExtractUser() user: User,
+    @Body() deleteGalleryImagesDTO: DeleteGalleryImagesDTO,
+  ): Promise<{ deleteResults: string }> {
     return;
   }
 }
