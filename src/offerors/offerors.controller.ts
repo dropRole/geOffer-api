@@ -6,7 +6,6 @@ import {
   Query,
   Patch,
   Param,
-  StreamableFile,
   UseInterceptors,
   UploadedFiles,
   Delete,
@@ -64,8 +63,8 @@ export class OfferorsController {
   @PrivilegedRoute('SUPERUSER', 'OFFEREE')
   obtainOfferors(
     @Query() obtainOfferorsDTO: ObtainOfferorsDTO,
-  ): Promise<Record<any, any>[]> {
-    return this.offerorsService.obtainOfferors(obtainOfferorsDTO);
+  ): Promise<{ records: Offeror[]; count: number }> {
+    return;
   }
 
   @Get('/business-info')
@@ -77,7 +76,6 @@ export class OfferorsController {
       Offeror,
       | 'id'
       | 'coordinates'
-      | 'offers'
       | 'reputation'
       | 'user'
       | 'requests'
@@ -91,15 +89,6 @@ export class OfferorsController {
   @Get('/reputation')
   @PrivilegedRoute('OFFEROR')
   claimReputation(@ExtractUser() user: User): Promise<OfferorReputation> {
-    return this.offerorsService.claimReputation(user);
-  }
-
-  @Patch('/service')
-  @PrivilegedRoute('OFFEROR')
-  amendService(
-    @ExtractUser() user: User,
-    @Body() amendServiceDTO: AmendServiceDTO,
-  ): Promise<void> {
     return;
   }
 
