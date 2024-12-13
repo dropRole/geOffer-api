@@ -41,7 +41,7 @@ export class RequestsService extends BaseService<Request> {
     user: User,
     makeRequestDTO: MakeRequestDTO,
   ): Promise<{ id: string }> {
-    const { seats, cause, note, requestedFor, idOfferor } = makeRequestDTO;
+    const { service, note, requestedFor, idOfferor } = makeRequestDTO;
 
     const offeror: Offeror = await this.offerorsService.obtainOneBy({
       id: idOfferor,
@@ -52,8 +52,7 @@ export class RequestsService extends BaseService<Request> {
     });
 
     const request: Request = this.repo.create({
-      seats,
-      cause,
+      service: JSON.parse(service),
       note,
       requestedFor,
       offeror,
@@ -119,7 +118,7 @@ export class RequestsService extends BaseService<Request> {
     id: string,
     amendRequestProvisionsDTO: AmendRequestProvisionsDTO,
   ): Promise<{ id: string }> {
-    const { seats, cause, note } = amendRequestProvisionsDTO;
+    const { note } = amendRequestProvisionsDTO;
 
     const request: Request = await this.obtainOneBy({ id });
 
@@ -127,7 +126,7 @@ export class RequestsService extends BaseService<Request> {
       throw new UnauthorizedException(`You haven't made the ${id} request.`);
 
     try {
-      await this.repo.update({ id }, { seats, cause, note });
+      await this.repo.update({ id }, { note });
     } catch (error) {
       this.dataLoggerService.error(
         `Error during Request record update: ${error.message}`,
@@ -141,7 +140,7 @@ export class RequestsService extends BaseService<Request> {
     this.dataLoggerService.update(
       request.constructor.name,
       request.id,
-      `{ seats: ${request.seats}, cause: ${request.cause}, note: ${request.note} } => { seats: ${seats}, cause: ${cause}, note: ${note} }`,
+      `{ note: ${request.note} } => { note: ${note} }`,
     );
 
     return { id: request.id };

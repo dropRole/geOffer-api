@@ -20,10 +20,7 @@ import { OfferorReputation } from './types';
 import AmendBusinessInfoDTO from './dto/amend-business-info.dto';
 import AlterReputationDTO from './dto/alter-reputation.dto';
 import User from 'src/auth/user.entity';
-import { createReadStream } from 'fs';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
-import { AlterOfferingDTO } from './dto/alter-offering.dto';
-import { AmendServiceDTO } from './dto/amend-service.dto';
 import { DeleteGalleryImagesDTO } from './dto/delete-gallery-images.dto';
 
 @Controller('offerors')
@@ -43,7 +40,7 @@ export class OfferorsController {
     @UploadedFiles()
     files: { highlight: Express.Multer.File; gallery: Express.Multer.File[] },
   ): Promise<{ id: string; uploadResults: string }> {
-    return;
+    return this.offerorsService.recordOfferor(recordOfferorDTO, files);
   }
 
   @Post('/images/gallery')
@@ -56,15 +53,15 @@ export class OfferorsController {
       gallery: Express.Multer.File[];
     },
   ): Promise<{ uploadResults: string }> {
-    return;
+    return this.offerorsService.addGalleryImages(user, files);
   }
 
   @Get()
   @PrivilegedRoute('SUPERUSER', 'OFFEREE')
   obtainOfferors(
     @Query() obtainOfferorsDTO: ObtainOfferorsDTO,
-  ): Promise<{ records: Offeror[]; count: number }> {
-    return;
+  ): Promise<Record<any, any>[]> {
+    return this.offerorsService.obtainOfferors(obtainOfferorsDTO);
   }
 
   @Get('/business-info')
@@ -89,7 +86,7 @@ export class OfferorsController {
   @Get('/reputation')
   @PrivilegedRoute('OFFEROR')
   claimReputation(@ExtractUser() user: User): Promise<OfferorReputation> {
-    return;
+    return this.offerorsService.claimReputation(user);
   }
 
   @Patch('/business-info')
@@ -120,7 +117,7 @@ export class OfferorsController {
       highlight: Express.Multer.File;
     },
   ): Promise<{ changeResult: string }> {
-    return;
+    return this.offerorsService.changeHighlightImage(user, files);
   }
 
   @Delete('/images/gallery')
@@ -129,6 +126,9 @@ export class OfferorsController {
     @ExtractUser() user: User,
     @Body() deleteGalleryImagesDTO: DeleteGalleryImagesDTO,
   ): Promise<{ deleteResults: string }> {
-    return;
+    return this.offerorsService.deleteGalleryImages(
+      user,
+      deleteGalleryImagesDTO,
+    );
   }
 }
