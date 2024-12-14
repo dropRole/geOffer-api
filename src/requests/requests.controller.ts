@@ -49,7 +49,6 @@ export class RequestsController {
     @Body() amendRequestProvisionsDTO: AmendRequestProvisionsDTO,
   ): Promise<{ id: string }> {
     return this.requestsService.amendRequestProvisions(
-      user,
       id,
       amendRequestProvisionsDTO,
     );
@@ -63,7 +62,6 @@ export class RequestsController {
     @Body() assessReservationTimeDTO: AssessReservationTimeDTO,
   ): Promise<{ id: string }> {
     return this.requestsService.assessReservationTime(
-      user,
       id,
       assessReservationTimeDTO,
     );
@@ -75,6 +73,6 @@ export class RequestsController {
     @Param('id') id: string,
     @ExtractUser() user: User,
   ): Promise<{ id: string }> {
-    return this.requestsService.revokeRequest(user, id);
+    return this.requestsService.revokeRequest(id);
   }
 }

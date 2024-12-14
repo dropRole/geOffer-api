@@ -38,7 +38,6 @@ export class ComplaintsController {
     @Query() obtainComplaintsDTO: ObtainComplaintsDTO,
   ): Promise<Complaint[]> {
     return this.complaintsService.obtainComplaints(
-      user,
       idIncident,
       obtainComplaintsDTO,
     );
@@ -51,11 +50,7 @@ export class ComplaintsController {
     @Param('id') id: string,
     @Body() rewriteComplaintDTO: RewriteComplaintDTO,
   ): Promise<{ id: string }> {
-    return this.complaintsService.rewriteComplaint(
-      user,
-      id,
-      rewriteComplaintDTO,
-    );
+    return this.complaintsService.rewriteComplaint(id, rewriteComplaintDTO);
   }
 
   @Delete('/:id')
@@ -64,6 +59,6 @@ export class ComplaintsController {
     @ExtractUser() user: User,
     @Param('id') id: string,
   ): Promise<{ id: string }> {
-    return this.complaintsService.withdrawComplaint(user, id);
+    return this.complaintsService.withdrawComplaint(id);
   }
 }

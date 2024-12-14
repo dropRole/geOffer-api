@@ -97,33 +97,16 @@ export class OfferorsService extends BaseService<Offeror> {
 
       try {
         await queryRunner.manager.insert(User, user);
-      } catch (error) {
-        await queryRunner.rollbackTransaction();
-
-        this.dataLoggerService.error(
-          `Error during user insertion: ${error.message}`,
-        );
-
-        throw new InternalServerErrorException(
-          `Error during user insertion: ${error.message}`,
-        );
-      }
-
-      try {
         await queryRunner.manager.insert(Offeror, offeror);
+
+        await queryRunner.commitTransaction();
       } catch (error) {
         await queryRunner.rollbackTransaction();
 
-        this.dataLoggerService.error(
-          `Error during offeror insertion: ${error.message}`,
-        );
-
         throw new InternalServerErrorException(
-          `Error during offeror insertion: ${error.message}`,
+          `Error during the user and offeror insertion transaction: ${error.message}`,
         );
       }
-
-      await queryRunner.commitTransaction();
 
       const s3 = new aws.S3({
         accessKeyId: process.env.AWS_S3_ACCESS_KEY,
@@ -287,12 +270,8 @@ export class OfferorsService extends BaseService<Offeror> {
     try {
       offerors = await queryBuilder.execute();
     } catch (error) {
-      this.dataLoggerService.error(
-        `Error during Offeror records fetch: ${error.message}`,
-      );
-
       throw new InternalServerErrorException(
-        `Error during data fetch: ${error.message}`,
+        `Error during fetching the offerors: ${error.message}`,
       );
     }
 
@@ -388,12 +367,8 @@ export class OfferorsService extends BaseService<Offeror> {
         },
       );
     } catch (error) {
-      this.dataLoggerService.error(
-        `Error during Offeror record update: ${error.message}`,
-      );
-
       throw new InternalServerErrorException(
-        `Error during data update: ${error.message}`,
+        `Error during the business info update: ${error.message}`,
       );
     }
 
@@ -426,12 +401,8 @@ export class OfferorsService extends BaseService<Offeror> {
         { reputation: { responsiveness, compliance, timeliness } },
       );
     } catch (error) {
-      this.dataLoggerService.error(
-        `Error during Offeror record update: ${error.message}`,
-      );
-
       throw new InternalServerErrorException(
-        `Error during data update: ${error.message}`,
+        `Error during the reputation update: ${error.message}`,
       );
     }
 
@@ -467,7 +438,7 @@ export class OfferorsService extends BaseService<Offeror> {
       });
     } catch (error) {
       throw new InternalServerErrorException(
-        `Error during data fetching: ${error.message}`,
+        `Error during fetching the highlight image data: ${error.message}`,
       );
     }
 
@@ -520,12 +491,8 @@ export class OfferorsService extends BaseService<Offeror> {
           },
         );
       } catch (error) {
-        this.dataLoggerService.error(
-          `Error during OfferorImage record update: ${error.message}`,
-        );
-
         throw new InternalServerErrorException(
-          `Error during data update: ${error.message}`,
+          `Error during the highlight image data update: ${error.message}`,
         );
       }
     }

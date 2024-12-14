@@ -3,7 +3,6 @@ import {
   Inject,
   forwardRef,
   ConflictException,
-  UnauthorizedException,
   InternalServerErrorException,
 } from '@nestjs/common';
 import BaseService from 'src/base.service';
@@ -32,7 +31,6 @@ export class ReservationsService extends BaseService<Reservation> {
   }
 
   async makeReservation(
-    user: User,
     makeReservationDTO: MakeReservationDTO,
   ): Promise<{ id: string }> {
     const { idRequest } = makeReservationDTO;
@@ -44,11 +42,6 @@ export class ReservationsService extends BaseService<Reservation> {
     const reserved: boolean = await this.repo.exist({
       where: { request: { id: idRequest } },
     });
-
-    if (request.offeror.user.username !== user.username)
-      throw new UnauthorizedException(
-        `Request ${request.id} wasn't intended for you.`,
-      );
 
     if (reserved)
       throw new ConflictException(`Request ${request.id} has been reserved.`);
@@ -82,12 +75,8 @@ export class ReservationsService extends BaseService<Reservation> {
     try {
       await this.repo.insert(reservation);
     } catch (error) {
-      this.dataLoggerService.error(
-        `Error during Reservation record insertion: ${error.message}`,
-      );
-
       throw new InternalServerErrorException(
-        `Error during data insert: ${error.message}`,
+        `Error during the reservation insertion: ${error.message}`,
       );
     }
 
@@ -156,19 +145,15 @@ export class ReservationsService extends BaseService<Reservation> {
     try {
       reservations = await query.getMany();
     } catch (error) {
-      this.dataLoggerService.error(
-        `Error during Reservation records fetch: ${error.message}`,
-      );
-
       throw new InternalServerErrorException(
-        `Error during data fetch: ${error.message}`,
+        `Error during fetching the reservations: ${error.message}`,
       );
     }
 
     return reservations;
   }
 
-  async withdrawReservation(user: User, id: string): Promise<{ id: string }> {
+  async withdrawReservation(id: string): Promise<{ id: string }> {
     const reservation: Reservation = await this.obtainOneBy({
       id,
     });
@@ -181,28 +166,14 @@ export class ReservationsService extends BaseService<Reservation> {
         status: 'PENDING',
       });
     } catch (error) {
-      if (error.statusCode === 500) {
-        this.dataLoggerService.error(
-          `Error during Incident record fetch: ${error.message}`,
-        );
-
+      if (error.statusCode === 500)
         throw new InternalServerErrorException(error.massage);
-      }
-
-      if (reservation.request.offeror.user.username !== user.username)
-        throw new UnauthorizedException(
-          `You haven't made the ${id} reservation.`,
-        );
 
       try {
         await this.repo.delete(id);
       } catch (error) {
-        this.dataLoggerService.error(
-          `Error during Reservation record deletion: ${error.message}`,
-        );
-
         throw new InternalServerErrorException(
-          `Error during data deletion: ${error.message}`,
+          `Error during the reservation deletion: ${error.message}`,
         );
       }
 

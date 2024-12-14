@@ -25,7 +25,7 @@ export class ReservationsController {
     @ExtractUser() user: User,
     @Body() makeReservationDTO: MakeReservationDTO,
   ): Promise<{ id: string }> {
-    return this.reservationsService.makeReservation(user, makeReservationDTO);
+    return this.reservationsService.makeReservation(makeReservationDTO);
   }
 
   @Get()
@@ -46,6 +46,6 @@ export class ReservationsController {
     @ExtractUser() user: User,
     @Param('id') id: string,
   ): Promise<{ id: string }> {
-    return this.reservationsService.withdrawReservation(user, id);
+    return this.reservationsService.withdrawReservation(id);
   }
 }

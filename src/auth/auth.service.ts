@@ -38,12 +38,8 @@ export class AuthService extends BaseService<User> {
     try {
       user = await this.repo.findOne({ where: { username } });
     } catch (error) {
-      this.dataLoggerService.error(
-        `Error during User record fetch: ${error.message}`,
-      );
-
       throw new InternalServerErrorException(
-        `Error during data fetch: ${error.message}`,
+        `Error during the username existence check: ${error.message}`,
       );
     }
 
@@ -76,12 +72,8 @@ export class AuthService extends BaseService<User> {
     } catch (error) {
       await queryRunner.rollbackTransaction();
 
-      this.dataLoggerService.error(
-        `Error during User and Offeree data transaction: ${error.message}`,
-      );
-
       throw new InternalServerErrorException(
-        `Error during data transaction: ${error.message}`,
+        `Error during the user and offeree insertion transaction: ${error.message}`,
       );
     }
 
@@ -126,12 +118,8 @@ export class AuthService extends BaseService<User> {
     try {
       await this.repo.update({ username: user.username }, { username });
     } catch (error) {
-      this.dataLoggerService.error(
-        `Error during User record update: ${error.message}`,
-      );
-
       throw new InternalServerErrorException(
-        `Error during data update: ${error.message}`,
+        `Error during the username update: ${error.message}`,
       );
     }
 
@@ -158,12 +146,8 @@ export class AuthService extends BaseService<User> {
     try {
       await this.repo.update({ username: user.username }, { password: hash });
     } catch (error) {
-      this.dataLoggerService.error(
-        `Error during User record update: ${error.message}`,
-      );
-
       throw new InternalServerErrorException(
-        `Error during data update: ${error.message}`,
+        `Error during the password update: ${error.message}`,
       );
     }
 

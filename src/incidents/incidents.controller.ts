@@ -39,7 +39,6 @@ export class IncidentsController {
     @Query() obtainIncidentsDTO: ObtainIncidentsDTO,
   ): Promise<Incident[]> {
     return this.incidentsService.obtainIncidents(
-      user,
       idReservation,
       obtainIncidentsDTO,
     );
@@ -52,7 +51,7 @@ export class IncidentsController {
     @Param('id') id: string,
     @Body() renameIncidentDTO: RenameIncidentDTO,
   ): Promise<{ id: string }> {
-    return this.incidentsService.renameIncident(user, id, renameIncidentDTO);
+    return this.incidentsService.renameIncident(id, renameIncidentDTO);
   }
 
   @Patch('/:id/status')
@@ -73,6 +72,6 @@ export class IncidentsController {
     @ExtractUser() user: User,
     @Param('id') id: string,
   ): Promise<{ id: string }> {
-    return this.incidentsService.closeIncident(user, id);
+    return this.incidentsService.closeIncident(id);
   }
 }

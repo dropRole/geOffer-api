@@ -20,7 +20,7 @@ import AlterTimeframeDTO from './dto/alter-timeframe.dto';
 export class ProhibitionsService extends BaseService<Prohibition> {
   constructor(
     @InjectRepository(Prohibition)
-    private prohibitionsRepo: Repository<Prohibition>,
+    prohibitionsRepo: Repository<Prohibition>,
     private incidentsService: IncidentsService,
     @InjectQueue('prohibitions')
     private prohibitionsQueue: Queue,
@@ -46,7 +46,7 @@ export class ProhibitionsService extends BaseService<Prohibition> {
       );
     } catch (error) {
       throw new InternalServerErrorException(
-        `Error during job addition: ${error.message}`,
+        `Error during the prohibition job addition: ${error.message}`,
       );
     }
   }
@@ -62,7 +62,7 @@ export class ProhibitionsService extends BaseService<Prohibition> {
       await alteredJob.remove();
     } catch (error) {
       throw new InternalServerErrorException(
-        `Error during job removal: ${error.message}`,
+        `Error during the prohibition job removal: ${error.message}`,
       );
     }
   }
@@ -91,27 +91,17 @@ export class ProhibitionsService extends BaseService<Prohibition> {
       termination,
     });
 
-    try {
-      await this.addProhibitionJob(
-        idIncident,
-        prohibition.beginning,
-        prohibition.termination,
-      );
-    } catch (error) {
-      throw new InternalServerErrorException(
-        `Error during adding a job: ${error.message}`,
-      );
-    }
+    await this.addProhibitionJob(
+      idIncident,
+      prohibition.beginning,
+      prohibition.termination,
+    );
 
     try {
       await this.repo.insert(prohibition);
     } catch (error) {
-      this.dataLoggerService.error(
-        `Error during Prohibition record insertion: ${error.message}`,
-      );
-
       throw new InternalServerErrorException(
-        `Error during data insert: ${error.message}`,
+        `Error during the prohibition insertion: ${error.message}`,
       );
     }
 
@@ -170,12 +160,8 @@ export class ProhibitionsService extends BaseService<Prohibition> {
     try {
       prohibitions = await query.getMany();
     } catch (error) {
-      this.dataLoggerService.error(
-        `Error during Prohibition records fetch: ${error.message}`,
-      );
-
       throw new InternalServerErrorException(
-        `Error during data fetch: ${error.message}`,
+        `Error during fetching the prohibitions: ${error.message}`,
       );
     }
 
@@ -203,12 +189,8 @@ export class ProhibitionsService extends BaseService<Prohibition> {
     try {
       await this.repo.update(id, { termination });
     } catch (error) {
-      this.dataLoggerService.error(
-        `Error during Prohibition record update: ${error.message}`,
-      );
-
       throw new InternalServerErrorException(
-        `Error during data update: ${error.message}`,
+        `Error during the prohibition timeframe update: ${error.message}`,
       );
     }
 
@@ -231,12 +213,8 @@ export class ProhibitionsService extends BaseService<Prohibition> {
     try {
       await this.repo.delete(id);
     } catch (error) {
-      this.dataLoggerService.error(
-        `Error during Prohibition record deletion: ${error.message}`,
-      );
-
       throw new InternalServerErrorException(
-        `Error during data deletion: ${error.message}`,
+        `Error during the prohibition deletion: ${error.message}`,
       );
     }
 

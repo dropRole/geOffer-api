@@ -2,7 +2,6 @@ import {
   Injectable,
   InternalServerErrorException,
   ConflictException,
-  UnauthorizedException,
   Inject,
   forwardRef,
 } from '@nestjs/common';
@@ -62,12 +61,8 @@ export class RequestsService extends BaseService<Request> {
     try {
       await this.repo.insert(request);
     } catch (error) {
-      this.dataLoggerService.error(
-        `Error during Request record insertion: ${error.message}`,
-      );
-
       throw new InternalServerErrorException(
-        `Error during data insert: ${error.message}`,
+        `Error during the request insertion: ${error.message}`,
       );
     }
 
@@ -101,12 +96,8 @@ export class RequestsService extends BaseService<Request> {
             },
       );
     } catch (error) {
-      this.dataLoggerService.error(
-        `Error during Request records fetch: ${error.message}`,
-      );
-
       throw new InternalServerErrorException(
-        `Error during data fetch: ${error.message}`,
+        `Error during fetching the requests: ${error.message}`,
       );
     }
 
@@ -114,7 +105,6 @@ export class RequestsService extends BaseService<Request> {
   }
 
   async amendRequestProvisions(
-    user: User,
     id: string,
     amendRequestProvisionsDTO: AmendRequestProvisionsDTO,
   ): Promise<{ id: string }> {
@@ -122,18 +112,11 @@ export class RequestsService extends BaseService<Request> {
 
     const request: Request = await this.obtainOneBy({ id });
 
-    if (request.offeree.user.username !== user.username)
-      throw new UnauthorizedException(`You haven't made the ${id} request.`);
-
     try {
       await this.repo.update({ id }, { note });
     } catch (error) {
-      this.dataLoggerService.error(
-        `Error during Request record update: ${error.message}`,
-      );
-
       throw new InternalServerErrorException(
-        `Error during data update: ${error.message}`,
+        `Error during the request note update: ${error.message}`,
       );
     }
 
@@ -147,7 +130,6 @@ export class RequestsService extends BaseService<Request> {
   }
 
   async assessReservationTime(
-    user: User,
     id: string,
     assessReservationTimeDTO: AssessReservationTimeDTO,
   ): Promise<{ id: string }> {
@@ -155,18 +137,11 @@ export class RequestsService extends BaseService<Request> {
 
     const request: Request = await this.obtainOneBy({ id });
 
-    if (request.offeror.user.username !== user.username)
-      throw new UnauthorizedException(`Request ${id} wasn't intended for you.`);
-
     try {
       await this.repo.update({ id }, { assessment });
     } catch (error) {
-      this.dataLoggerService.error(
-        `Error during Request record update: ${error.message}`,
-      );
-
       throw new InternalServerErrorException(
-        `Error during data update: ${error.message}`,
+        `Error during the request assessment update: ${error.message}`,
       );
     }
 
@@ -179,11 +154,8 @@ export class RequestsService extends BaseService<Request> {
     return { id: request.id };
   }
 
-  async revokeRequest(user: User, id: string): Promise<{ id: string }> {
+  async revokeRequest(id: string): Promise<{ id: string }> {
     const request: Request = await this.obtainOneBy({ id });
-
-    if (request.offeree.user.username !== user.username)
-      throw new UnauthorizedException(`You haven't made the ${id} request.`);
 
     let reserved: Reservation;
 
@@ -192,13 +164,8 @@ export class RequestsService extends BaseService<Request> {
         request: { id },
       });
     } catch (error) {
-      if (error.statusCode === 500) {
-        this.dataLoggerService.error(
-          `Error during Reservation record fetch: ${error.message}`,
-        );
-
+      if (error.statusCode === 500)
         throw new InternalServerErrorException(error.message);
-      }
 
       try {
         await this.reservationsService.obtainOneBy({
@@ -212,12 +179,8 @@ export class RequestsService extends BaseService<Request> {
 
           return { id: request.id };
         } catch (error) {
-          this.dataLoggerService.error(
-            `Error during Request record deletion: ${error.message}`,
-          );
-
           throw new InternalServerErrorException(
-            `Error during data deletion: ${error.message}`,
+            `Error during the request deletion: ${error.message}`,
           );
         }
       }

@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  UnauthorizedException,
-  InternalServerErrorException,
-} from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import BaseService from 'src/base.service';
 import Complaint from './complaint.entity';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -17,7 +13,7 @@ import RewriteComplaintDTO from './dto/rewrite-complaint.dto';
 export class ComplaintsService extends BaseService<Complaint> {
   constructor(
     @InjectRepository(Complaint)
-    private complaintsRepo: Repository<Complaint>,
+    complaintsRepo: Repository<Complaint>,
     private dataSource: DataSource,
   ) {
     super(complaintsRepo);
@@ -44,22 +40,10 @@ export class ComplaintsService extends BaseService<Complaint> {
     try {
       incident = await query.getOne();
     } catch (error) {
-      this.dataLoggerService.error(
-        `Error during Incident record fetch: ${error.message}`,
-      );
-
       throw new InternalServerErrorException(
-        `Error during data fetch: ${error.message}`,
+        `Error during fetching the incident to which the complaint belongs: ${error.message}`,
       );
     }
-
-    if (
-      incident.reservation.request.offeree.user.username !== user.username &&
-      incident.reservation.request.offeror.user.username !== user.username
-    )
-      throw new UnauthorizedException(
-        `Cannot write a complaint due to not being a participant in the ${idIncident} incident.`,
-      );
 
     const counteredComplaint: Complaint = await this.obtainOneBy({
       id: idCounteredComplaint,
@@ -75,12 +59,8 @@ export class ComplaintsService extends BaseService<Complaint> {
     try {
       await this.repo.insert(complaint);
     } catch (error) {
-      this.dataLoggerService.error(
-        `Error during Complaint record fetch: ${error.message}`,
-      );
-
       throw new InternalServerErrorException(
-        `Error during data insert: ${error.message}`,
+        `Error during the complaint insertion: ${error.message}`,
       );
     }
 
@@ -90,7 +70,6 @@ export class ComplaintsService extends BaseService<Complaint> {
   }
 
   async obtainComplaints(
-    user: User,
     idIncident: string,
     obtainComplaintsDTO: ObtainComplaintsDTO,
   ): Promise<Complaint[]> {
@@ -104,29 +83,6 @@ export class ComplaintsService extends BaseService<Complaint> {
     query.innerJoinAndSelect('offeror.user', 'offerorUser');
     query.where('incident.id = :idIncident', { idIncident });
 
-    let incident: Incident;
-
-    try {
-      incident = await query.getOne();
-    } catch (error) {
-      this.dataLoggerService.error(
-        `Error during Incident record fetch: ${error.message}`,
-      );
-
-      throw new InternalServerErrorException(
-        `Error during data fetch: ${error.message}`,
-      );
-    }
-
-    if (
-      user.privilege !== 'SUPERUSER' &&
-      incident.reservation.request.offeree.user.username !== user.username &&
-      incident.reservation.request.offeror.user.username !== user.username
-    )
-      throw new UnauthorizedException(
-        `You're not taking part in the ${idIncident} incident.`,
-      );
-
     const { writtenOrder, take } = obtainComplaintsDTO;
 
     let complaints: Complaint[];
@@ -138,12 +94,8 @@ export class ComplaintsService extends BaseService<Complaint> {
         take,
       });
     } catch (error) {
-      this.dataLoggerService.error(
-        `Error during Complaint records fetch: ${error.message}`,
-      );
-
       throw new InternalServerErrorException(
-        `Error during data fetch: ${error.message}`,
+        `Error during fetching the complaints: ${error.message}`,
       );
     }
 
@@ -151,7 +103,6 @@ export class ComplaintsService extends BaseService<Complaint> {
   }
 
   async rewriteComplaint(
-    user: User,
     id: string,
     rewriteComplaintDTO: RewriteComplaintDTO,
   ): Promise<{ id: string }> {
@@ -161,20 +112,11 @@ export class ComplaintsService extends BaseService<Complaint> {
       id,
     });
 
-    if (complaint.author.username !== user.username)
-      throw new UnauthorizedException(
-        `You're not an author of the ${id} complaint.`,
-      );
-
     try {
       await this.repo.update(id, { content });
     } catch (error) {
-      this.dataLoggerService.error(
-        `Error during Complaint record update: ${error.message}`,
-      );
-
       throw new InternalServerErrorException(
-        `Error during data update: ${error.message}`,
+        `Error during the complaint content update: ${error.message}`,
       );
     }
 
@@ -187,25 +129,16 @@ export class ComplaintsService extends BaseService<Complaint> {
     return { id };
   }
 
-  async withdrawComplaint(user: User, id: string): Promise<{ id: string }> {
+  async withdrawComplaint(id: string): Promise<{ id: string }> {
     const complaint: Complaint = await this.obtainOneBy({
       id,
     });
 
-    if (complaint.author.username !== user.username)
-      throw new UnauthorizedException(
-        `You're not an author of the ${id} complaint.`,
-      );
-
     try {
       await this.repo.delete(id);
     } catch (error) {
-      this.dataLoggerService.error(
-        `Error during Complaint record deletion: ${error.message}`,
-      );
-
       throw new InternalServerErrorException(
-        `Error during data deletion: ${error.message}`,
+        `Error during the complaint deletion: ${error.message}`,
       );
     }
 
