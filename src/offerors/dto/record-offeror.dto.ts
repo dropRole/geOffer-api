@@ -17,6 +17,9 @@ export default class RecordOfferorDTO {
   @IsJSON()
   address: string;
 
+  @IsJSON()
+  coordinates: string;
+
   @IsNotEmpty()
   @MaxLength(15)
   telephone: string;
@@ -24,6 +27,9 @@ export default class RecordOfferorDTO {
   @IsEmail()
   @MaxLength(254)
   email: string;
+
+  @IsJSON()
+  service: string;
 
   @IsOptional()
   @IsString()

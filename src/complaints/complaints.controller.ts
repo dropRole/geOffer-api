@@ -33,12 +33,10 @@ export class ComplaintsController {
   @Get('/:idIncident')
   @PrivilegedRoute('SUPERUSER', 'OFFEREE', 'OFFEROR')
   obtainComplaints(
-    @ExtractUser() user: User,
     @Param('idIncident') idIncident: string,
     @Query() obtainComplaintsDTO: ObtainComplaintsDTO,
   ): Promise<Complaint[]> {
     return this.complaintsService.obtainComplaints(
-      user,
       idIncident,
       obtainComplaintsDTO,
     );
@@ -47,23 +45,15 @@ export class ComplaintsController {
   @Patch('/:id/content')
   @PrivilegedRoute('OFFEREE', 'OFFEROR')
   rewriteComplaint(
-    @ExtractUser() user: User,
     @Param('id') id: string,
     @Body() rewriteComplaintDTO: RewriteComplaintDTO,
   ): Promise<{ id: string }> {
-    return this.complaintsService.rewriteComplaint(
-      user,
-      id,
-      rewriteComplaintDTO,
-    );
+    return this.complaintsService.rewriteComplaint(id, rewriteComplaintDTO);
   }
 
   @Delete('/:id')
   @PrivilegedRoute('OFFEREE', 'OFFEROR')
-  withdrawComplaint(
-    @ExtractUser() user: User,
-    @Param('id') id: string,
-  ): Promise<{ id: string }> {
-    return this.complaintsService.withdrawComplaint(user, id);
+  withdrawComplaint(@Param('id') id: string): Promise<{ id: string }> {
+    return this.complaintsService.withdrawComplaint(id);
   }
 }

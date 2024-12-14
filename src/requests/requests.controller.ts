@@ -44,12 +44,9 @@ export class RequestsController {
   @PrivilegedRoute('OFFEREE')
   amendRequestProvisions(
     @Param('id') id: string,
-    @ExtractUser()
-    user: User,
     @Body() amendRequestProvisionsDTO: AmendRequestProvisionsDTO,
   ): Promise<{ id: string }> {
     return this.requestsService.amendRequestProvisions(
-      user,
       id,
       amendRequestProvisionsDTO,
     );
@@ -59,11 +56,9 @@ export class RequestsController {
   @PrivilegedRoute('OFFEROR')
   assessReservationTime(
     @Param('id') id: string,
-    @ExtractUser() user: User,
     @Body() assessReservationTimeDTO: AssessReservationTimeDTO,
   ): Promise<{ id: string }> {
     return this.requestsService.assessReservationTime(
-      user,
       id,
       assessReservationTimeDTO,
     );
@@ -71,10 +66,7 @@ export class RequestsController {
 
   @Delete('/:id')
   @PrivilegedRoute('OFFEREE')
-  revokeRequest(
-    @Param('id') id: string,
-    @ExtractUser() user: User,
-  ): Promise<{ id: string }> {
-    return this.requestsService.revokeRequest(user, id);
+  revokeRequest(@Param('id') id: string): Promise<{ id: string }> {
+    return this.requestsService.revokeRequest(id);
   }
 }

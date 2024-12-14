@@ -23,8 +23,4 @@ export class DataLoggerService extends ConsoleLogger {
       `DATA | ${type} instance with identifier ${key} was deleted at ${new Date().toLocaleString()}.`,
     );
   }
-
-  error(message: string): void {
-    super.error(`DATA | ${new Date().toLocaleString()} ${message} `);
-  }
 }

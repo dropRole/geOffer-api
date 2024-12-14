@@ -34,12 +34,10 @@ export class IncidentsController {
   @Get('/:idReservation')
   @PrivilegedRoute('SUPERUSER', 'OFFEREE', 'OFFEROR')
   obtainIncidents(
-    @ExtractUser() user: User,
     @Param('idReservation') idReservation: string,
     @Query() obtainIncidentsDTO: ObtainIncidentsDTO,
   ): Promise<Incident[]> {
     return this.incidentsService.obtainIncidents(
-      user,
       idReservation,
       obtainIncidentsDTO,
     );
@@ -48,11 +46,10 @@ export class IncidentsController {
   @Patch('/:id/title')
   @PrivilegedRoute('OFFEREE', 'OFFEROR')
   renameIncident(
-    @ExtractUser() user: User,
     @Param('id') id: string,
     @Body() renameIncidentDTO: RenameIncidentDTO,
   ): Promise<{ id: string }> {
-    return this.incidentsService.renameIncident(user, id, renameIncidentDTO);
+    return this.incidentsService.renameIncident(id, renameIncidentDTO);
   }
 
   @Patch('/:id/status')
@@ -69,10 +66,7 @@ export class IncidentsController {
 
   @Delete('/:id')
   @PrivilegedRoute('SUPERUSER', 'OFFEREE', 'OFFEROR')
-  closeIncident(
-    @ExtractUser() user: User,
-    @Param('id') id: string,
-  ): Promise<{ id: string }> {
-    return this.incidentsService.closeIncident(user, id);
+  closeIncident(@Param('id') id: string): Promise<{ id: string }> {
+    return this.incidentsService.closeIncident(id);
   }
 }

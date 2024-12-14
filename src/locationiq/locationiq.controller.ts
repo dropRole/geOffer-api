@@ -1,9 +1,8 @@
 import { Controller, Get, Query } from '@nestjs/common';
 import { LocationiqService } from './locationiq.service';
-import { PrivilegedRoute } from '../auth/privileged-route.decorator';
-import { ReversedLocation } from './types/reversed-location';
+import { PrivilegedRoute } from 'src/auth/privileged-route.decorator';
+import { ReversedLocation, SearchedLocation } from './types';
 import ReverseDTO from './dto/reverse.dto';
-import SearchedLocation from './types/searched-location';
 import SearchDTO from './dto/search.dto';
 import { Observable } from 'rxjs';
 

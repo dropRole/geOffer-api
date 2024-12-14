@@ -23,7 +23,9 @@ export default class AmendBusinessInfoDTO {
   @MaxLength(254)
   email: string;
 
-  @IsOptional()
-  @IsString()
+  @IsJSON()
+  service: string;
+
+  @IsJSON()
   businessHours?: string;
 }

@@ -2,7 +2,7 @@ import { Body, Controller, Post, Get, Param, Patch } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import SignupDTO from './dto/signup.dto';
 import { PublicRoute } from './public-route.decorator';
-import Token from './types/token';
+import { Token } from './types';
 import LoginDTO from './dto/login.dto';
 import { PrivilegedRoute } from './privileged-route.decorator';
 import User from './user.entity';

@@ -3,7 +3,6 @@ import {
   Inject,
   Injectable,
   InternalServerErrorException,
-  UnauthorizedException,
   forwardRef,
 } from '@nestjs/common';
 import BaseService from '../base.service';
@@ -17,13 +16,13 @@ import Reservation from '../reservations/reservation.entity';
 import ObtainIncidentsDTO from './dto/obtain-incidents.dto';
 import RenameIncidentDTO from './dto/rename-incident.dto';
 import AlterIncidentStatusDTO from './dto/alter-incident-status.dto';
-import IncidentStatus from './types/incident-status';
+import IncidentStatus from './types';
 
 @Injectable()
 export class IncidentsService extends BaseService<Incident> {
   constructor(
     @InjectRepository(Incident)
-    private incidentsRepo: Repository<Incident>,
+    incidentsRepo: Repository<Incident>,
     @Inject(forwardRef(() => ReservationsService))
     private reservationsService: ReservationsService,
   ) {
@@ -42,14 +41,6 @@ export class IncidentsService extends BaseService<Incident> {
       },
     );
 
-    if (
-      reservation.request.offeree.user.username !== user.username &&
-      reservation.request.offeror.user.username !== user.username
-    )
-      throw new UnauthorizedException(
-        `Cannot open an incident due to not being a participant in the ${idReservation} reservation.`,
-      );
-
     const incident: Incident = this.repo.create({
       reservation,
       title,
@@ -59,12 +50,8 @@ export class IncidentsService extends BaseService<Incident> {
     try {
       await this.repo.insert(incident);
     } catch (error) {
-      this.dataLoggerService.error(
-        `Error during Incident record insertion: ${error.message}`,
-      );
-
       throw new InternalServerErrorException(
-        `Error during data insert: ${error.message}`,
+        `Error during the incident insertion: ${error.message}`,
       );
     }
 
@@ -74,22 +61,9 @@ export class IncidentsService extends BaseService<Incident> {
   }
 
   async obtainIncidents(
-    user: User,
     idReservation: string,
     obtainIncidentsDTO: ObtainIncidentsDTO,
   ): Promise<Incident[]> {
-    const reservation: Reservation = await this.reservationsService.obtainOneBy(
-      { id: idReservation },
-    );
-
-    if (
-      reservation.request.offeree.user.username !== user.username &&
-      reservation.request.offeror.user.username !== user.username
-    )
-      throw new UnauthorizedException(
-        `Cannot obtain incidents due to not being a participant in the ${idReservation} reservation.`,
-      );
-
     const { status } = obtainIncidentsDTO;
 
     const query: SelectQueryBuilder<Incident> =
@@ -104,12 +78,8 @@ export class IncidentsService extends BaseService<Incident> {
     try {
       incidents = await query.getMany();
     } catch (error) {
-      this.dataLoggerService.error(
-        `Error during Incident records fetch: ${error.message}`,
-      );
-
       throw new InternalServerErrorException(
-        `Error during data fetch: ${error.message}`,
+        `Error during fetching the incidents: ${error.message}`,
       );
     }
 
@@ -117,7 +87,6 @@ export class IncidentsService extends BaseService<Incident> {
   }
 
   async renameIncident(
-    user: User,
     id: string,
     renameIncidentDTO: RenameIncidentDTO,
   ): Promise<{ id: string }> {
@@ -125,18 +94,11 @@ export class IncidentsService extends BaseService<Incident> {
 
     const incident = await this.obtainOneBy({ id });
 
-    if (incident.openedBy.username !== user.username)
-      throw new UnauthorizedException(`You haven't opened the ${id} incident.`);
-
     try {
       await this.repo.update({ id }, { title });
     } catch (error) {
-      this.dataLoggerService.error(
-        `Error during Incident record update: ${error.message}`,
-      );
-
       throw new InternalServerErrorException(
-        `Error during data update: ${error.message}`,
+        `Error during renaming the incident: ${error.message}`,
       );
     }
 
@@ -161,12 +123,8 @@ export class IncidentsService extends BaseService<Incident> {
     try {
       await this.repo.update(id, { status });
     } catch (error) {
-      this.dataLoggerService.error(
-        `Error during Incident record update: ${error.message}`,
-      );
-
       throw new InternalServerErrorException(
-        `Error during data update: ${error.message}`,
+        `Error during the incident status update: ${error.message}`,
       );
     }
 
@@ -179,14 +137,8 @@ export class IncidentsService extends BaseService<Incident> {
     return { id };
   }
 
-  async closeIncident(user: User, id: string): Promise<{ id: string }> {
+  async closeIncident(id: string): Promise<{ id: string }> {
     const incident: Incident = await this.obtainOneBy({ id });
-
-    if (
-      user.privilege !== 'SUPERUSER' &&
-      incident.openedBy.username !== user.username
-    )
-      throw new UnauthorizedException(`You haven't opened the ${id} incident.`);
 
     if (incident.status === 'PENDING')
       throw new ConflictException(`The incident ${id} is still pending.`);
@@ -194,12 +146,8 @@ export class IncidentsService extends BaseService<Incident> {
     try {
       await this.repo.delete(id);
     } catch (error) {
-      this.dataLoggerService.error(
-        `Error during Incident record deletion: ${error.message}`,
-      );
-
       throw new InternalServerErrorException(
-        `Error during data deletion: ${error.message}`,
+        `Error during closing the incident: ${error.message}`,
       );
     }
 

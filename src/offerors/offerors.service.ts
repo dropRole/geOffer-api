@@ -19,17 +19,23 @@ import { AuthService } from '../auth/auth.service';
 import User from '../auth/user.entity';
 import * as bcrypt from 'bcrypt';
 import ObtainOfferorsDTO from './dto/obtain-offerors.dto';
-import OfferorReputation from './types/offeror-reputation';
+import { OfferorReputation } from './types';
 import AmendBusinessInfoDTO from './dto/amend-business-info.dto';
 import AlterReputationDTO from './dto/alter-reputation.dto';
-import Reservation from '../reservations/reservation.entity';
-import { ReservationsService } from '../reservations/reservations.service';
+import Reservation from 'src/reservations/reservation.entity';
+import { ReservationsService } from 'src/reservations/reservations.service';
+import OfferorImage from './offeror-images.entity';
+import * as aws from 'aws-sdk';
+import { DeleteGalleryImagesDTO } from './dto/delete-gallery-images.dto';
+import * as path from 'path';
 
 @Injectable()
 export class OfferorsService extends BaseService<Offeror> {
   constructor(
     @InjectRepository(Offeror)
     offerorsRepo: Repository<Offeror>,
+    @InjectRepository(OfferorImage)
+    private offerorImagesRepo: Repository<OfferorImage>,
     private authService: AuthService,
     private dataSource: DataSource,
     @Inject(forwardRef(() => ReservationsService))
@@ -40,7 +46,8 @@ export class OfferorsService extends BaseService<Offeror> {
 
   async recordOfferor(
     recordOfferorDTO: RecordOfferorDTO,
-  ): Promise<{ id: string }> {
+    files: { highlight: Express.Multer.File; gallery: Express.Multer.File[] },
+  ): Promise<{ id: string; uploadResults: string }> {
     const { username } = recordOfferorDTO;
 
     let user: User;
@@ -50,8 +57,16 @@ export class OfferorsService extends BaseService<Offeror> {
         username,
       });
     } catch (error) {
-      const { name, address, telephone, email, businessHours, password } =
-        recordOfferorDTO;
+      const {
+        name,
+        address,
+        coordinates,
+        telephone,
+        email,
+        service,
+        businessHours,
+        password,
+      } = recordOfferorDTO;
 
       const hash: string = await bcrypt.hash(password, 9);
 
@@ -64,11 +79,15 @@ export class OfferorsService extends BaseService<Offeror> {
       const offeror: Offeror = this.repo.create({
         name,
         address: JSON.parse(address),
+        coordinates: JSON.parse(coordinates),
         telephone,
         email,
-        businessHours,
+        service: JSON.parse(service),
+        businessHours: JSON.parse(businessHours),
         user,
         requests: [],
+        images: [],
+        events: [],
       });
 
       const queryRunner: QueryRunner = this.dataSource.createQueryRunner();
@@ -84,35 +103,157 @@ export class OfferorsService extends BaseService<Offeror> {
       } catch (error) {
         await queryRunner.rollbackTransaction();
 
-        this.dataLoggerService.error(
-          `Error during User and Offeror data transaction: ${error.message}`,
-        );
-
         throw new InternalServerErrorException(
-          `Error during data transaction: ${error.message}`,
+          `Error during the user and offeror insertion transaction: ${error.message}`,
         );
+      }
+
+      const s3 = new aws.S3({
+        accessKeyId: process.env.AWS_S3_ACCESS_KEY,
+        secretAccessKey: process.env.AWS_S3_SECRET_ACCESS_KEY,
+      });
+
+      let uploadResults = `The highlight image ${files.highlight[0].originalname} isn't of the image/* mimetype.`;
+
+      if (files.highlight[0].mimetype.match(/image/g)) {
+        const offerorHighlightImage: OfferorImage =
+          this.offerorImagesRepo.create({
+            offeror,
+            type: 'HIGHLIGHT',
+            destination: `${process.env.AWS_S3_BUCKET_URL}/highlight/${files.highlight[0].originalname}`,
+          });
+
+        try {
+          await this.offerorImagesRepo.insert(offerorHighlightImage);
+
+          await s3
+            .upload({
+              Bucket: process.env.AWS_S3_BUCKET,
+              Key: `highlight/${files.highlight[0].originalname}`,
+              Body: files.highlight[0].buffer,
+              ACL: 'public-read',
+              ContentType: files.highlight[0].mimetype,
+            })
+            .promise();
+
+          uploadResults += `The file ${files.highlight[0].originalname} uploaded successfully.`;
+        } catch (error) {
+          uploadResults = `The file ${files.highlight[0].originalname} failed to upload: ${error.message}`;
+        }
+      }
+
+      for (const galleryImage of files.gallery) {
+        let galleryImageUploadResult = `The gallery image ${galleryImage.originalname} isn't of image/* mimetype.`;
+
+        if (galleryImage.mimetype.match(/image/g)) {
+          const offerorGalleryImage: OfferorImage =
+            this.offerorImagesRepo.create({
+              offeror,
+              type: 'GALLERY',
+              destination: `${process.env.AWS_S3_BUCKET_URL}/gallery/${galleryImage.originalname}`,
+            });
+
+          try {
+            await this.offerorImagesRepo.insert(offerorGalleryImage);
+
+            await s3
+              .upload({
+                Bucket: process.env.AWS_S3_BUCKET,
+                Key: `gallery/${galleryImage.originalname}`,
+                Body: galleryImage.buffer,
+                ACL: 'public-read',
+                ContentType: galleryImage.mimetype,
+              })
+              .promise();
+
+            galleryImageUploadResult = ` The gallery image ${galleryImage.originalname} successfully uploaded.`;
+          } catch (error) {
+            uploadResults += error.message;
+          }
+
+          uploadResults += galleryImageUploadResult;
+        }
       }
 
       this.dataLoggerService.create(user.constructor.name, user.username);
       this.dataLoggerService.create(offeror.constructor.name, offeror.id);
 
-      return { id: offeror.id };
+      return {
+        id: offeror.id,
+        uploadResults: `${uploadResults}`.trim(),
+      };
     }
 
     throw new ConflictException(`Username ${username} is already in use.`);
   }
 
-  async obtainOfferors(
-    obtainOfferorsDTO: ObtainOfferorsDTO,
-  ): Promise<Offeror[]> {
-    interface ObtainedOfferor extends Offeror {
-      reservationsMade: number;
+  async addGalleryImages(
+    user: User,
+    files: { gallery: Express.Multer.File[] },
+  ): Promise<{ uploadResults: string }> {
+    const offeror = await this.obtainOneBy({
+      user: { username: user.username },
+    });
+
+    const s3 = new aws.S3({
+      accessKeyId: process.env.AWS_S3_ACCESS_KEY,
+      secretAccessKey: process.env.AWS_S3_SECRET_ACCESS_KEY,
+    });
+
+    let uploadResults = '';
+
+    for (const galleryImage of files.gallery) {
+      let galleryImageUploadResult = `The gallery image ${galleryImage.originalname} isn't of image/* mimetype.`;
+
+      if (galleryImage.mimetype.match(/image/g)) {
+        const offerorGalleryImage: OfferorImage = this.offerorImagesRepo.create(
+          {
+            offeror,
+            type: 'GALLERY',
+            destination: `${process.env.AWS_S3_BUCKET_URL}/gallery/${galleryImage.originalname}`,
+          },
+        );
+
+        try {
+          await this.offerorImagesRepo.insert(offerorGalleryImage);
+
+          await s3
+            .upload({
+              Bucket: process.env.AWS_S3_BUCKET,
+              Key: `gallery/${galleryImage.originalname}`,
+              Body: galleryImage.buffer,
+              ACL: 'public-read',
+              ContentType: galleryImage.mimetype,
+            })
+            .promise();
+
+          galleryImageUploadResult = ` The gallery image ${galleryImage.originalname} successfully uploaded.`;
+        } catch (error) {
+          uploadResults += error.message;
+        }
+
+        uploadResults += galleryImageUploadResult;
+      }
     }
 
+    return {
+      uploadResults: `${uploadResults}`.trim(),
+    };
+  }
+
+  async obtainOfferors(
+    obtainOfferorsDTO: ObtainOfferorsDTO,
+  ): Promise<Record<any, any>[]> {
+    interface ObtainedOfferor extends Offeror {
+      count: number;
+      reservationsMade: number;
+    }
     const { name, city, reservationsMade, take } = obtainOfferorsDTO;
 
     const queryBuilder: SelectQueryBuilder<Offeror> =
       this.repo.createQueryBuilder('offeror');
+    queryBuilder.addSelect('COUNT(id) AS count');
+    queryBuilder.groupBy('id');
     queryBuilder.where('UPPER(name) LIKE UPPER(:name)', {
       name: `%${name}%`,
     });
@@ -129,12 +270,8 @@ export class OfferorsService extends BaseService<Offeror> {
     try {
       offerors = await queryBuilder.execute();
     } catch (error) {
-      this.dataLoggerService.error(
-        `Error during Offeror records fetch: ${error.message}`,
-      );
-
       throw new InternalServerErrorException(
-        `Error during data fetch: ${error.message}`,
+        `Error during fetching the offerors: ${error.message}`,
       );
     }
 
@@ -167,8 +304,19 @@ export class OfferorsService extends BaseService<Offeror> {
 
   async claimBusinessInfo(
     user: User,
-  ): Promise<Omit<Offeror, 'id' | 'reputation' | 'user' | 'requests'>> {
-    const { name, address, telephone, email, businessHours } =
+  ): Promise<
+    Omit<
+      Offeror,
+      | 'id'
+      | 'coordinates'
+      | 'reputation'
+      | 'user'
+      | 'requests'
+      | 'images'
+      | 'events'
+    >
+  > {
+    const { name, address, telephone, email, service, businessHours } =
       await this.obtainOneBy({
         user: { username: user.username },
       });
@@ -178,6 +326,7 @@ export class OfferorsService extends BaseService<Offeror> {
       address,
       telephone,
       email,
+      service,
       businessHours,
     };
   }
@@ -202,21 +351,24 @@ export class OfferorsService extends BaseService<Offeror> {
       user: { username: user.username },
     });
 
-    const { name, address, telephone, email, businessHours } =
+    const { name, address, telephone, email, service, businessHours } =
       amendBusinessInfoDTO;
 
     try {
       await this.repo.update(
         { user: { username: user.username } },
-        { name, address: JSON.parse(address), telephone, email, businessHours },
+        {
+          name,
+          address: JSON.parse(address),
+          telephone,
+          email,
+          service: JSON.parse(service),
+          businessHours: JSON.parse(businessHours),
+        },
       );
     } catch (error) {
-      this.dataLoggerService.error(
-        `Error during Offeror record update: ${error.message}`,
-      );
-
       throw new InternalServerErrorException(
-        `Error during data update: ${error.message}`,
+        `Error during the business info update: ${error.message}`,
       );
     }
 
@@ -225,13 +377,13 @@ export class OfferorsService extends BaseService<Offeror> {
       offeror.id,
       `{ name: ${offeror.name}, address: ${JSON.stringify(
         offeror.address,
-      )}, telephone: ${offeror.telephone}, email: ${
-        offeror.email
+      )}, telephone: ${offeror.telephone}, email: ${offeror.email}, service: ${
+        offeror.service
       }, businessHours: ${
         offeror.businessHours
       } } => { name: ${name}, address: ${JSON.stringify(
         offeror.address,
-      )}, telephone: ${telephone}, email: ${email}, businessHours: ${businessHours} }`,
+      )}, telephone: ${telephone}, email: ${email}, service: ${service} , businessHours: ${businessHours} }`,
     );
   }
 
@@ -249,12 +401,8 @@ export class OfferorsService extends BaseService<Offeror> {
         { reputation: { responsiveness, compliance, timeliness } },
       );
     } catch (error) {
-      this.dataLoggerService.error(
-        `Error during Offeror record update: ${error.message}`,
-      );
-
       throw new InternalServerErrorException(
-        `Error during data update: ${error.message}`,
+        `Error during the reputation update: ${error.message}`,
       );
     }
 
@@ -265,5 +413,141 @@ export class OfferorsService extends BaseService<Offeror> {
     );
 
     return { id };
+  }
+
+  async changeHighlightImage(
+    user: User,
+    files: {
+      highlight: Express.Multer.File;
+    },
+  ): Promise<{ changeResult: string }> {
+    const offeror: Offeror = await this.obtainOneBy({
+      user: { username: user.username },
+    });
+
+    const s3 = new aws.S3({
+      accessKeyId: process.env.AWS_S3_ACCESS_KEY,
+      secretAccessKey: process.env.AWS_S3_SECRET_ACCESS_KEY,
+    });
+
+    let highlightImage: OfferorImage;
+
+    try {
+      highlightImage = await this.offerorImagesRepo.findOne({
+        where: { offeror: { id: offeror.id }, type: 'HIGHLIGHT' },
+      });
+    } catch (error) {
+      throw new InternalServerErrorException(
+        `Error during fetching the highlight image data: ${error.message}`,
+      );
+    }
+
+    let changeResult = '';
+
+    if (highlightImage)
+      try {
+        await s3
+          .deleteObject({
+            Bucket: process.env.AWS_S3_BUCKET,
+            Key: `highlight/${path.basename(highlightImage.destination)}`,
+          })
+          .promise();
+      } catch (error) {
+        changeResult = error.message;
+
+        return { changeResult };
+      }
+
+    let uploadResults = `The highlight image ${files.highlight[0].originalname} isn't of the image/* mimetype.`;
+
+    if (files.highlight[0].mimetype.match(/image/g)) {
+      try {
+        await s3
+          .upload({
+            Bucket: process.env.AWS_S3_BUCKET,
+            Key: `highlight/${files.highlight[0].originalname}`,
+            Body: files.highlight[0].buffer,
+            ACL: 'public-read',
+            ContentType: files.highlight[0].mimetype,
+          })
+          .promise();
+
+        uploadResults = `The file ${files.highlight[0].originalname} uploaded successfully.`;
+      } catch (error) {
+        changeResult = `The file ${files.highlight[0].originalname} failed to upload: ${error.message}`;
+
+        return { changeResult };
+      }
+    }
+
+    if (highlightImage && changeResult === '') {
+      changeResult = uploadResults;
+
+      try {
+        await this.offerorImagesRepo.update(
+          { id: highlightImage.id },
+          {
+            destination: `${process.env.AWS_S3_BUCKET_URL}/highlight/${files.highlight[0].originalname}`,
+          },
+        );
+      } catch (error) {
+        throw new InternalServerErrorException(
+          `Error during the highlight image data update: ${error.message}`,
+        );
+      }
+    }
+
+    return { changeResult: changeResult.trim() };
+  }
+
+  async deleteGalleryImages(
+    user: User,
+    deleteGalleryImagesDTO: DeleteGalleryImagesDTO,
+  ): Promise<{ deleteResults: string }> {
+    const { imageIds } = deleteGalleryImagesDTO;
+
+    const ids = JSON.parse(imageIds).ids;
+
+    const s3 = new aws.S3({
+      accessKeyId: process.env.AWS_S3_ACCESS_KEY,
+      secretAccessKey: process.env.AWS_S3_SECRET_ACCESS_KEY,
+    });
+
+    let deleteResults = '';
+
+    for (const id of ids) {
+      const galleryImage: OfferorImage = await this.offerorImagesRepo.findOne({
+        where: { id },
+      });
+
+      let objectDeleted = false;
+
+      try {
+        await s3
+          .deleteObject({
+            Bucket: process.env.AWS_S3_BUCKET,
+            Key: `gallery/${path.basename(galleryImage.destination)}`,
+          })
+          .promise();
+
+        objectDeleted = true;
+      } catch (error) {
+        deleteResults += `Error during AWS object deletion: ${error.message}`;
+      }
+
+      if (objectDeleted) {
+        try {
+          await this.offerorImagesRepo.delete({ id });
+
+          deleteResults += `The gallery image ${path.basename(
+            galleryImage.destination,
+          )} is successfully deleted.`;
+        } catch (error) {
+          deleteResults += `Error during OfferorImage deletion: ${error.message}. `;
+        }
+      }
+    }
+
+    return { deleteResults: deleteResults.trim() };
   }
 }

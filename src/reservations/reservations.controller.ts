@@ -22,10 +22,9 @@ export class ReservationsController {
   @Post()
   @PrivilegedRoute('OFFEROR')
   makeReservation(
-    @ExtractUser() user: User,
     @Body() makeReservationDTO: MakeReservationDTO,
   ): Promise<{ id: string }> {
-    return this.reservationsService.makeReservation(user, makeReservationDTO);
+    return this.reservationsService.makeReservation(makeReservationDTO);
   }
 
   @Get()
@@ -42,10 +41,7 @@ export class ReservationsController {
 
   @Delete('/:id')
   @PrivilegedRoute('OFFEROR')
-  withdrawReservation(
-    @ExtractUser() user: User,
-    @Param('id') id: string,
-  ): Promise<{ id: string }> {
-    return this.reservationsService.withdrawReservation(user, id);
+  withdrawReservation(@Param('id') id: string): Promise<{ id: string }> {
+    return this.reservationsService.withdrawReservation(id);
   }
 }

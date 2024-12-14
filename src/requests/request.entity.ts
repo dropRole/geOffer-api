@@ -1,16 +1,14 @@
 import { Entity, Index, Column, ManyToOne, JoinColumn } from 'typeorm';
-import BaseEntity from '../base.entity';
-import Offeree from '../offerees/offeree.entity';
-import Offeror from '../offerors/offeror.entity';
+import BaseEntity from 'src/base.entity';
+import Offeree from 'src/offerees/offeree.entity';
+import Offeror from 'src/offerors/offeror.entity';
+import { OfferorService } from 'src/offerors/types';
 
 @Entity('requests')
 @Index(['offeree', 'offeror'])
 export default class Request extends BaseEntity {
-  @Column({ type: 'smallint' })
-  seats: number;
-
   @Column({ type: 'text' })
-  cause: string;
+  service: Pick<OfferorService, 'service'>;
 
   @Column({ type: 'text', nullable: true })
   note: string;
@@ -18,7 +16,7 @@ export default class Request extends BaseEntity {
   @Column({ type: 'timestamp', default: 'NOW' })
   requestedAt: string;
 
-  @Column({ type: 'timestamp' })
+  @Column({ type: 'timestamp', nullable: true })
   requestedFor: string;
 
   @Column({ type: 'timestamp', nullable: true })
