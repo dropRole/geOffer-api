@@ -8,14 +8,15 @@ import Reservation from './reservations/reservation.entity';
 import Incident from './incidents/incident.entity';
 import Complaint from './complaints/complaint.entity';
 import Prohibition from './prohibitions/prohibition.entity';
-import { ReversedLocation } from './locationiq/types/reversed-location';
-import SearchedLocation from './locationiq/types/searched-location';
+import { ReversedLocation, SearchedLocation } from './locationiq/types';
+import OfferorImage from './offerors/offeror-images.entity';
 
 const JWTSecret = 'G2DEKyvZ49YLLgi7r/MGEC17W+pEFqdEeOlcouS8lvw=';
 
 let mockUsersRepo: User[] = [];
 let mockOffereesRepo: Offeree[] = [];
 let mockOfferorsRepo: Offeror[] = [];
+let mockOfferorImagesRepo: OfferorImage[] = [];
 let mockRequestsRepo: Request[] = [];
 let mockReservationsRepo: Reservation[] = [];
 let mockIncidentsRepo: Incident[] = [];
@@ -56,41 +57,41 @@ let forwardGeocodingAPIResponse: SearchedLocation = {
 
 mockUsersRepo = [
   {
-    username: 'gustavofring',
+    username: 'geofferadmin',
     privilege: 'SUPERUSER',
-    password: bcrypt.hashSync('gusFring@58', 9),
+    password: bcrypt.hashSync('geoffer@Admin24', 9),
     created: new Date().toLocaleString(),
     incidents: [],
     complaints: [],
   },
   {
-    username: 'mikeehrmantraut',
+    username: 'johndoe',
     privilege: 'OFFEREE',
-    password: bcrypt.hashSync('oldMike@43', 9),
+    password: bcrypt.hashSync('johnDoe@24', 9),
     created: new Date().toLocaleString(),
     incidents: [mockIncidentsRepo[0]],
     complaints: [mockComplaintsRepo[0]],
   },
   {
-    username: 'lalosalamanca',
+    username: 'janedoe',
     privilege: 'OFFEREE',
-    password: bcrypt.hashSync('lalosalamanca@60', 9),
+    password: bcrypt.hashSync('janeDoe@24', 9),
     created: new Date().toLocaleString(),
     incidents: [mockIncidentsRepo[1]],
     complaints: [],
   },
   {
-    username: 'lospolloshermanos',
+    username: 'restoranpetrovic',
     privilege: 'OFFEROR',
-    password: bcrypt.hashSync('losPOLLOShermanos@17', 9),
+    password: bcrypt.hashSync('restoranPetrovic@24', 9),
     created: new Date().toLocaleString(),
     incidents: [mockIncidentsRepo[0]],
     complaints: [mockComplaintsRepo[1]],
   },
   {
-    username: 'elmichoacano',
+    username: 'kulturnicentarcacak',
     privilege: 'OFFEROR',
-    password: bcrypt.hashSync('elMichoacano@86', 9),
+    password: bcrypt.hashSync('kulturniCentarCacak@24', 9),
     created: new Date().toLocaleString(),
     incidents: [mockIncidentsRepo[1]],
     complaints: [mockComplaintsRepo[2]],
@@ -100,74 +101,137 @@ mockUsersRepo = [
 mockOffereesRepo = [
   {
     id: uuidv4(),
-    name: 'Mike',
-    surname: 'Ehrmantraut',
-    email: 'mikeehrmantraut@email.com',
+    name: 'John',
+    surname: 'Doe',
+    email: 'johndoe@email.com',
     user: mockUsersRepo[1],
     requests: [mockRequestsRepo[0]],
   },
   {
     id: uuidv4(),
-    name: 'Lalo',
-    surname: 'Salamanca',
-    email: 'lalosalamanca@email.com',
+    name: 'Jane',
+    surname: 'Doe',
+    email: 'janedoe@email.com',
     user: mockUsersRepo[2],
-    requests: [mockRequestsRepo[2]],
+    requests: [mockRequestsRepo[1]],
   },
 ];
 
 mockOfferorsRepo = [
   {
     id: uuidv4(),
-    name: 'Los Pollos Hermanos',
+    name: 'Restoran Petrović',
     address: {
       street: {
-        name: 'Coors Rd SW',
-        numeration: '12000 - 12100',
+        name: 'Gučki put',
+        numeration: '700bb',
       },
       city: {
-        name: 'Albuquerque',
-        postalCode: '87101',
+        name: 'Čačak',
+        postalCode: '32000',
       },
-      country: 'New Mexico',
+      country: 'Serbia',
     },
-    telephone: '(505) 146-0195',
-    email: 'lospolloshermanos@email.com',
-    businessHours:
-      '7am - 10pm Monday - Thursday; 7am - 12am Friday - Saturday (drive-thru open until 1am Friday); 7am - 9pm Sunday',
+    coordinates: { latitude: 43.89139, longitude: 20.34972 },
+    telephone: '032/55-90-333',
+    email: 'restoran.petrovic2009@gmail.com',
+    service: {
+      category: 'Restaurant',
+      service: {
+        name: 'Dinning',
+        description:
+          'Seat number inside is 150 and outside is 120. Parking places limited to 35. Internet available through wi-fi. Paying via visa, maestro, master, and dina.',
+      },
+    },
+    businessHours: {
+      Monday: { from: '08:00', to: '00:00' },
+      Tuesday: { from: '08:00', to: '00:00' },
+      Wednesday: { from: '08:00', to: '00:00' },
+      Thursday: { from: '08:00', to: '00:00' },
+      Friday: { from: '08:00', to: '00:00' },
+      Saturday: { from: '08:00', to: '00:00' },
+      Sunday: { from: '08:00', to: '00:00' },
+    },
     reputation: { responsiveness: 10, compliance: 10, timeliness: 10 },
-    user: mockUsersRepo[2],
+    user: mockUsersRepo[3],
     requests: [mockRequestsRepo[0]],
+    images: [],
+    events: [],
   },
   {
     id: uuidv4(),
-    name: 'El Michoacáno',
+    name: 'Bioskop Sutjeska',
     address: {
       street: {
-        name: 'El Moreno, Isleta Blvd SW',
-        numeration: '2511',
+        name: 'Kralja Petra I',
+        numeration: '26a',
       },
       city: {
-        name: 'Albuquerque',
-        postalCode: '87101',
+        name: 'Čačak',
+        postalCode: '32000',
       },
-      country: 'New Mexico',
+      country: 'Serbia',
     },
-    telephone: '(505) 0195-146',
-    email: 'elmichoacano@email.com',
-    businessHours:
-      '7am - 10pm Monday - Thursday; 7am - 12am Friday - Saturday; 7am - 9pm Sunday',
+    coordinates: { latitude: 43.893319, longitude: 20.3464443 },
+    telephone: '032 404 100',
+    email: 'cacak@bioskopsutjeska.com',
+    service: {
+      category: 'Movie Theater',
+      service: {
+        name: 'Ticket selling',
+        description:
+          'The cinema hall with its hall is located on an area of ​​about 350 square meters. The hall consists of 80 seats, of which 78 are seated, while two are intended for people with disabilities. In order to make the access and stay as easy as possible for people with disabilities, an adequate access for wheelchairs is provided. In addition, the cinema hall is equipped with unique lighting, as well as excellent air conditioning and heating. In terms of technical equipment, the new, old Sutjeska was built according to the highest world standards, which include the highest image resolution, the possibility of 3D projections, as well as a surround and Dolby system. For the complete comfort of its visitors, the seats are leather, and the distance between the backrest and the seat in the next row is 1.5m, which is significantly more than in the old hall, where the same distance was about 50cm.',
+      },
+    },
+    businessHours: {
+      Monday: { from: '08:00', to: '22:00' },
+      Tuesday: { from: '08:00', to: '22:00' },
+      Wednesday: { from: '08:00', to: '22:00' },
+      Thursday: { from: '08:00', to: '22:00' },
+      Friday: { from: '08:00', to: '22:00' },
+      Saturday: { from: '08:00', to: '22:00' },
+      Sunday: { from: '08:00', to: '22:00' },
+    },
     reputation: { responsiveness: 10, compliance: 10, timeliness: 10 },
     user: mockUsersRepo[4],
     requests: [mockRequestsRepo[1]],
+    images: [],
+    events: [],
   },
 ];
+
+mockOfferorImagesRepo = [
+  {
+    id: uuidv4(),
+    destination: 'somewhere_on_aws_bucket',
+    type: 'HIGHLIGHT',
+    offeror: mockOfferorsRepo[0],
+  },
+  {
+    id: uuidv4(),
+    destination: 'somewhere_on_aws_bucket',
+    type: 'GALLERY',
+    offeror: mockOfferorsRepo[0],
+  },
+  {
+    id: uuidv4(),
+    destination: 'somewhere_on_aws_bucket',
+    type: 'HIGHLIGHT',
+    offeror: mockOfferorsRepo[1],
+  },
+];
+
+mockOfferorsRepo[0].images = [
+  mockOfferorImagesRepo[0],
+  mockOfferorImagesRepo[1],
+];
+
+mockOfferorsRepo[1].images = [mockOfferorImagesRepo[2]];
 
 mockRequestsRepo = [
   {
     id: uuidv4(),
-    seats: 2,
-    cause: 'Randevouz',
+    service: { name: 'Dinning' },
     note: 'Table for two',
     requestedAt: new Date().toString(),
     requestedFor: new Date(
@@ -179,32 +243,22 @@ mockRequestsRepo = [
   },
   {
     id: uuidv4(),
-    seats: 5,
-    cause: 'Familia gathering',
-    note: undefined,
+    service: { name: 'Ticket selling' },
+    note: 'Two tickets for The Grand Budapest Hotel film',
     requestedAt: new Date().toString(),
-    requestedFor: new Date(
-      new Date().setHours(new Date().getHours() + 0.5),
-    ).toString(),
-    assessment: new Date(
-      new Date().setHours(new Date().getHours() + 3.5),
-    ).toString(),
+    requestedFor: null,
+    assessment: null,
     offeree: mockOffereesRepo[1],
     offeror: mockOfferorsRepo[1],
   },
   {
     id: uuidv4(),
-    seats: 2,
-    cause: 'Grandfather and his granddaughter',
-    note: 'Time together.',
+    service: { name: 'Ticket selling' },
+    note: 'Three tickets for The Grand Budapest Hotel film',
     requestedAt: new Date().toString(),
-    requestedFor: new Date(
-      new Date().setHours(new Date().getHours() + 0.5),
-    ).toString(),
-    assessment: new Date(
-      new Date().setHours(new Date().getHours() + 1.5),
-    ).toString(),
-    offeree: mockOffereesRepo[1],
+    requestedFor: null,
+    assessment: null,
+    offeree: mockOffereesRepo[0],
     offeror: mockOfferorsRepo[1],
   },
 ];
@@ -229,32 +283,32 @@ mockReservationsRepo = [
 mockIncidentsRepo = [
   {
     id: uuidv4(),
-    title: "I'm too old for this.",
+    title: 'Service impoliteness',
     status: 'REJECTED',
     opened: new Date().toString(),
     openedBy: mockUsersRepo[1],
-    conclusion: '',
+    conclusion: 'The statement is unfounded.',
     reservation: mockReservationsRepo[0],
     complaints: [mockComplaintsRepo[0], mockComplaintsRepo[1]],
   },
   {
     id: uuidv4(),
-    title: 'Familia is utterly loud.',
+    title: 'Unrealistic guest demands',
     status: 'RESOLVED',
     opened: new Date().toString(),
-    openedBy: mockUsersRepo[4],
-    conclusion: 'True as hell.',
-    reservation: mockReservationsRepo[1],
+    openedBy: mockUsersRepo[3],
+    conclusion: 'The statement is founded.',
+    reservation: mockReservationsRepo[0],
     complaints: [mockComplaintsRepo[2]],
   },
   {
     id: uuidv4(),
-    title: 'Customer threatens.',
+    title: 'Made loud noise',
     status: 'PENDING',
     opened: new Date().toString(),
-    openedBy: mockUsersRepo[1],
+    openedBy: mockUsersRepo[4],
     conclusion: undefined,
-    reservation: mockReservationsRepo[0],
+    reservation: mockReservationsRepo[1],
     complaints: [],
   },
 ];
@@ -262,7 +316,7 @@ mockIncidentsRepo = [
 mockComplaintsRepo = [
   {
     id: uuidv4(),
-    content: 'Too fansy for old Mikey.',
+    content: 'They serve cold dishes.',
     author: mockUsersRepo[1],
     written: new Date().toString(),
     edited: undefined,
@@ -273,8 +327,8 @@ mockComplaintsRepo = [
 
 mockComplaintsRepo.push({
   id: uuidv4(),
-  content: 'Say it to your boss.',
-  author: mockUsersRepo[2],
+  content: 'Dishes were served as they were prepared.',
+  author: mockUsersRepo[3],
   written: new Date().toString(),
   edited: undefined,
   counteredComplaint: mockComplaintsRepo[0],
@@ -283,8 +337,8 @@ mockComplaintsRepo.push({
 
 mockComplaintsRepo.push({
   id: uuidv4(),
-  content: 'Cannot withstand the loudness.',
-  author: mockUsersRepo[4],
+  content: 'Guests demanded the dishes in half a price.',
+  author: mockUsersRepo[3],
   written: new Date().toString(),
   edited: undefined,
   counteredComplaint: undefined,
@@ -292,14 +346,6 @@ mockComplaintsRepo.push({
 });
 
 mockProhibitionsRepo = [
-  {
-    id: uuidv4(),
-    beginning: new Date().toString(),
-    termination: new Date(
-      new Date().setDate(new Date().getDate() + 1),
-    ).toString(),
-    incident: mockIncidentsRepo[0],
-  },
   {
     id: uuidv4(),
     beginning: new Date().toString(),
@@ -317,6 +363,7 @@ export {
   mockProhibitionsRepo,
   mockRequestsRepo,
   mockOfferorsRepo,
+  mockOfferorImagesRepo,
   mockReservationsRepo,
   mockIncidentsRepo,
   mockComplaintsRepo,

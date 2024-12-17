@@ -15,7 +15,7 @@ import Incident from './incident.entity';
 import ObtainIncidentsDTO from './dto/obtain-incidents.dto';
 import RenameIncidentDTO from './dto/rename-incident.dto';
 import AlterIncidentStatusDTO from './dto/alter-incident-status.dto';
-import IncidentStatus from './types/incident-status';
+import IncidentStatus from './types';
 
 let incidentsRepo: Incident[] = mockIncidentsRepo;
 
@@ -47,15 +47,6 @@ describe('IncidentsController', () => {
                       `The reservation identified with ${idReservation} wasn't found.`,
                     );
 
-                  if (
-                    reservation.request.offeree.user.username !==
-                      user.username &&
-                    reservation.request.offeror.user.username !== user.username
-                  )
-                    throw new UnauthorizedException(
-                      `Cannot open an incident due to not being a participant in the ${idReservation} reservation.`,
-                    );
-
                   const incident: Incident = {
                     id: uuidv4(),
                     title,
@@ -76,7 +67,6 @@ describe('IncidentsController', () => {
               .fn()
               .mockImplementation(
                 (
-                  user: User,
                   idReservation: string,
                   obtainIncidentsDTO: ObtainIncidentsDTO,
                 ): Incident[] => {
@@ -87,15 +77,6 @@ describe('IncidentsController', () => {
                   if (!reservation)
                     throw new NotFoundException(
                       `The reservation identified with ${idReservation} wasn't found.`,
-                    );
-
-                  if (
-                    reservation.request.offeree.user.username !==
-                      user.username &&
-                    reservation.request.offeror.user.username !== user.username
-                  )
-                    throw new UnauthorizedException(
-                      `Cannot obtain incidents due to not being a participant in the ${idReservation} reservation.`,
                     );
 
                   const { status } = obtainIncidentsDTO;
@@ -118,7 +99,6 @@ describe('IncidentsController', () => {
               .fn()
               .mockImplementation(
                 (
-                  user: User,
                   id: string,
                   renameIncidentDTO: RenameIncidentDTO,
                 ): { id: string } => {
@@ -129,16 +109,6 @@ describe('IncidentsController', () => {
                   if (!renamedIncident)
                     throw new NotFoundException(
                       `The incident identified with ${id} wasn't found.`,
-                    );
-
-                  if (
-                    renamedIncident.reservation.request.offeree.user
-                      .username !== user.username &&
-                    renamedIncident.reservation.request.offeror.user
-                      .username !== user.username
-                  )
-                    throw new UnauthorizedException(
-                      `You haven't opened the ${id} incident.`,
                     );
 
                   const { title } = renameIncidentDTO;
@@ -187,7 +157,7 @@ describe('IncidentsController', () => {
               ),
             closeIncident: jest
               .fn()
-              .mockImplementation((user: User, id: string): { id: string } => {
+              .mockImplementation((id: string): { id: string } => {
                 const incident: Incident = incidentsRepo.find(
                   (incident) => incident.id === id,
                 );
@@ -195,14 +165,6 @@ describe('IncidentsController', () => {
                 if (!incident)
                   throw new NotFoundException(
                     `The incident identified with ${id} wasn't found.`,
-                  );
-
-                if (
-                  user.privilege !== 'SUPERUSER' &&
-                  incident.openedBy.username !== user.username
-                )
-                  throw new UnauthorizedException(
-                    `You haven't opened the ${id} incident.`,
                   );
 
                 if (incident.status === 'PENDING')
@@ -224,15 +186,15 @@ describe('IncidentsController', () => {
   });
 
   describe('openIncident', () => {
-    it('should return an object holding id property', () => {
-      const openIncidentDTO: OpenIncidentDTO = {
-        title: "Yet, i'm too old.",
-        idReservation: mockReservationsRepo[0].id,
-      };
+    const openIncidentDTO: OpenIncidentDTO = {
+      title: "The film wasn't timely reproduced",
+      idReservation: mockReservationsRepo[1].id,
+    };
 
+    it('should return an object holding id property', () => {
       expect(
         controller.openIncident(
-          mockReservationsRepo[0].request.offeree.user,
+          mockReservationsRepo[1].request.offeree.user,
           openIncidentDTO,
         ),
       ).toMatchObject<{ id: string }>({ id: expect.any(String) });
@@ -241,10 +203,7 @@ describe('IncidentsController', () => {
     it('should throw a NotFoundException', () => {
       const idReservation: string = uuidv4();
 
-      const openIncidentDTO: OpenIncidentDTO = {
-        title: "Yet, i'm too old.",
-        idReservation,
-      };
+      openIncidentDTO.idReservation = idReservation;
 
       expect(() =>
         controller.openIncident(
@@ -265,27 +224,10 @@ describe('IncidentsController', () => {
 
       expect(
         controller.obtainIncidents(
-          mockReservationsRepo[0].request.offeree.user,
           mockReservationsRepo[0].id,
           obtainIncidentsDTO,
         ),
       ).toBeInstanceOf(Array<Incident>);
-    });
-
-    it('should throw an UnauthorizedException', () => {
-      const obtainIncidentsDTO: ObtainIncidentsDTO = {
-        status: 'REJECTED',
-      };
-
-      expect(() =>
-        controller.obtainIncidents(
-          mockReservationsRepo[0].request.offeree.user,
-          mockReservationsRepo[1].id,
-          obtainIncidentsDTO,
-        ),
-      ).toThrow(
-        `Cannot obtain incidents due to not being a participant in the ${mockReservationsRepo[1].id} reservation.`,
-      );
     });
   });
 
@@ -296,26 +238,8 @@ describe('IncidentsController', () => {
       };
 
       expect(
-        controller.renameIncident(
-          incidentsRepo[0].reservation.request.offeree.user,
-          incidentsRepo[0].id,
-          renameIncidentDTO,
-        ),
+        controller.renameIncident(incidentsRepo[0].id, renameIncidentDTO),
       ).toMatchObject<{ id: string }>({ id: incidentsRepo[0].id });
-    });
-
-    it('should throw an UnauthorizedException', () => {
-      const renameIncidentDTO: RenameIncidentDTO = {
-        title: "Yet, i'm getting older",
-      };
-
-      expect(() =>
-        controller.renameIncident(
-          incidentsRepo[0].reservation.request.offeree.user,
-          incidentsRepo[1].id,
-          renameIncidentDTO,
-        ),
-      ).toThrow(`You haven't opened the ${incidentsRepo[1].id} incident.`);
     });
   });
 
@@ -341,24 +265,9 @@ describe('IncidentsController', () => {
     it('should return an object holding id property', () => {
       const id: string = incidentsRepo[incidentsRepo.length - 1].id;
 
-      expect(
-        controller.closeIncident(
-          incidentsRepo[incidentsRepo.length - 1].reservation.request.offeree
-            .user,
-          id,
-        ),
-      ).toMatchObject<{ id: string }>({
+      expect(controller.closeIncident(id)).toMatchObject<{ id: string }>({
         id,
       });
-    });
-
-    it('should throw a UnauthorizedException', () => {
-      expect(() =>
-        controller.closeIncident(
-          incidentsRepo[1].reservation.request.offeree.user,
-          incidentsRepo[0].id,
-        ),
-      ).toThrow(`You haven't opened the ${incidentsRepo[0].id} incident.`);
     });
   });
 });

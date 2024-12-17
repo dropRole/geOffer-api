@@ -23,7 +23,7 @@ import { OfferorReputation } from './types';
 import AmendBusinessInfoDTO from './dto/amend-business-info.dto';
 import AlterReputationDTO from './dto/alter-reputation.dto';
 import Reservation from 'src/reservations/reservation.entity';
-import { ReservationsService } from 'src/reservations/reservations.service';
+import { ReservationsService } from '../reservations/reservations.service';
 import OfferorImage from './offeror-images.entity';
 import * as aws from 'aws-sdk';
 import { DeleteGalleryImagesDTO } from './dto/delete-gallery-images.dto';
@@ -501,7 +501,6 @@ export class OfferorsService extends BaseService<Offeror> {
   }
 
   async deleteGalleryImages(
-    user: User,
     deleteGalleryImagesDTO: DeleteGalleryImagesDTO,
   ): Promise<{ deleteResults: string }> {
     const { imageIds } = deleteGalleryImagesDTO;

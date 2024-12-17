@@ -37,7 +37,7 @@ describe('RequestsController', () => {
                   user: User,
                   makeRequestDTO: MakeRequestDTO,
                 ): { id: string } => {
-                  const { idOfferor, seats, cause, note, requestedFor } =
+                  const { idOfferor, service, note, requestedFor } =
                     makeRequestDTO;
 
                   const offeror: Offeror = mockOfferorsRepo.find(
@@ -55,8 +55,7 @@ describe('RequestsController', () => {
 
                   const request: Request = {
                     id: uuidv4(),
-                    seats,
-                    cause,
+                    service: JSON.parse(service),
                     note,
                     requestedAt: new Date().toString(),
                     requestedFor,
@@ -73,7 +72,10 @@ describe('RequestsController', () => {
             obtainRequests: jest
               .fn()
               .mockImplementation(
-                (user: User, obtainRequestsDTO: ObtainRequestsDTO) => {
+                (
+                  user: User,
+                  obtainRequestsDTO: ObtainRequestsDTO,
+                ): Request[] => {
                   const { requestedOrder, take } = obtainRequestsDTO;
 
                   let requests: Request[];
@@ -107,10 +109,9 @@ describe('RequestsController', () => {
               .fn()
               .mockImplementation(
                 (
-                  user: User,
                   id: string,
                   amendRequestProvisionsDTO: AmendRequestProvisionsDTO,
-                ) => {
+                ): { id: string } => {
                   let amendedRequest: Request | undefined = requestsRepo.find(
                     (request) => request.id === id,
                   );
@@ -120,14 +121,9 @@ describe('RequestsController', () => {
                       `Request identified with ${id} wasn't found.`,
                     );
 
-                  if (amendedRequest.offeree.user.username !== user.username)
-                    throw new UnauthorizedException(
-                      `You haven't made the ${id} request.`,
-                    );
+                  const { note } = amendRequestProvisionsDTO;
 
-                  const { seats, cause, note } = amendRequestProvisionsDTO;
-
-                  amendedRequest = { ...amendedRequest, seats, cause, note };
+                  amendedRequest = { ...amendedRequest, note };
 
                   requestsRepo = requestsRepo.map((request) => {
                     if (request.id === amendedRequest.id) return amendedRequest;
@@ -142,7 +138,6 @@ describe('RequestsController', () => {
               .fn()
               .mockImplementation(
                 (
-                  user: User,
                   id: string,
                   assessReservationTimeDTO: AssessReservationTimeDTO,
                 ): { id: string } => {
@@ -154,11 +149,6 @@ describe('RequestsController', () => {
                       `Request identified with ${id} wasn't found.`,
                     );
 
-                  if (assessedRequest.offeror.user.username !== user.username)
-                    throw new UnauthorizedException(
-                      `The ${id} request wasn't intended for you.`,
-                    );
-
                   const { assessment } = assessReservationTimeDTO;
 
                   assessedRequest.assessment = assessment;
@@ -168,7 +158,7 @@ describe('RequestsController', () => {
               ),
             revokeRequest: jest
               .fn()
-              .mockImplementation((user: User, id: string): { id: string } => {
+              .mockImplementation((id: string): { id: string } => {
                 const request: Request = requestsRepo.find(
                   (request) => request.id === id,
                 );
@@ -176,11 +166,6 @@ describe('RequestsController', () => {
                 if (!request)
                   throw new NotFoundException(
                     `The request identified with ${id} wasn't found.`,
-                  );
-
-                if (request.offeree.user.username !== user.username)
-                  throw new UnauthorizedException(
-                    `You haven't made the ${id} request.`,
                   );
 
                 requestsRepo = requestsRepo.filter(
@@ -197,34 +182,25 @@ describe('RequestsController', () => {
   });
 
   describe('makeRequest', () => {
+    const todaysDate: Date = new Date();
+
+    const makeRequestDTO: MakeRequestDTO = {
+      idOfferor: mockOfferorsRepo[0].id,
+      service: JSON.stringify({ name: 'Dining' }),
+      note: 'On my own.',
+      requestedFor: todaysDate.setHours(todaysDate.getHours() + 3).toString(),
+    };
+
     it('should return object that holds id property', () => {
-      const todaysDate: Date = new Date();
-
-      const makeRequestDTO: MakeRequestDTO = {
-        idOfferor: mockOfferorsRepo[0].id,
-        seats: 1,
-        cause: 'Soliloquy',
-        requestedFor: todaysDate.setHours(todaysDate.getHours() + 3).toString(),
-        note: 'On my own.',
-      };
-
       expect(
         controller.makeRequest(mockUsersRepo[1], makeRequestDTO),
       ).toBeDefined();
     });
 
     it('should throw a NotFoundException', () => {
-      const todaysDate: Date = new Date();
-
       const uuid: string = uuidv4();
 
-      const makeRequestDTO: MakeRequestDTO = {
-        idOfferor: uuid,
-        seats: 1,
-        cause: 'Soliloquy',
-        requestedFor: todaysDate.setHours(todaysDate.getHours() + 3).toString(),
-        note: 'On my own.',
-      };
+      makeRequestDTO.idOfferor = uuid;
 
       expect(() =>
         controller.makeRequest(mockUsersRepo[1], makeRequestDTO),
@@ -248,40 +224,17 @@ describe('RequestsController', () => {
   describe('amendRequestProvisions', () => {
     it('should return an object holding id property', () => {
       const amendRequestProvisionsDTO: AmendRequestProvisionsDTO = {
-        seats: 1,
-        cause: 'Augmented soliloquy',
-        note: undefined,
+        note: 'Mistake, table for two.',
       };
 
       expect(
         controller.amendRequestProvisions(
           requestsRepo[requestsRepo.length - 1].id,
-          mockUsersRepo[1],
           amendRequestProvisionsDTO,
         ),
       ).toMatchObject<{ id: string }>({
         id: requestsRepo[requestsRepo.length - 1].id,
       });
-    });
-
-    it('should throw an UnauthorizedException', () => {
-      const amendRequestProvisionsDTO: AmendRequestProvisionsDTO = {
-        seats: 1,
-        cause: 'Augmented soliloquy',
-        note: undefined,
-      };
-
-      expect(() =>
-        controller.amendRequestProvisions(
-          requestsRepo[requestsRepo.length - 1].id,
-          mockUsersRepo[2],
-          amendRequestProvisionsDTO,
-        ),
-      ).toThrow(
-        `You haven't made the ${
-          requestsRepo[requestsRepo.length - 1].id
-        } request.`,
-      );
     });
   });
 
@@ -296,32 +249,11 @@ describe('RequestsController', () => {
       expect(
         controller.assessReservationTime(
           requestsRepo[requestsRepo.length - 1].id,
-          requestsRepo[requestsRepo.length - 1].offeror.user,
           assessReservationTimeDTO,
         ),
       ).toMatchObject<{ id: string }>({
         id: requestsRepo[requestsRepo.length - 1].id,
       });
-    });
-
-    it('should throw an UnauthorizedException', () => {
-      const todaysDate: Date = new Date();
-
-      const assessReservationTimeDTO: AssessReservationTimeDTO = {
-        assessment: new Date().setDate(todaysDate.getDate() + 4).toString(),
-      };
-
-      expect(() =>
-        controller.assessReservationTime(
-          requestsRepo[requestsRepo.length - 1].id,
-          requestsRepo[requestsRepo.length - 2].offeror.user,
-          assessReservationTimeDTO,
-        ),
-      ).toThrow(
-        `The ${
-          requestsRepo[requestsRepo.length - 1].id
-        } request wasn't intended for you.`,
-      );
     });
   });
 
@@ -329,27 +261,9 @@ describe('RequestsController', () => {
     it('should return an object holding id property', () => {
       const id: string = requestsRepo[requestsRepo.length - 1].id;
 
-      expect(
-        controller.revokeRequest(
-          id,
-          requestsRepo[requestsRepo.length - 1].offeree.user,
-        ),
-      ).toMatchObject<{ id: string }>({
+      expect(controller.revokeRequest(id)).toMatchObject<{ id: string }>({
         id,
       });
-    });
-
-    it('should throw an UnauthorizedException', () => {
-      expect(() =>
-        controller.revokeRequest(
-          requestsRepo[requestsRepo.length - 1].id,
-          requestsRepo[0].offeree.user,
-        ),
-      ).toThrow(
-        `You haven't made the ${
-          requestsRepo[requestsRepo.length - 1].id
-        } request.`,
-      );
     });
   });
 });

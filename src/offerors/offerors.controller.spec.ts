@@ -7,18 +7,22 @@ import {
   mockOfferorsRepo,
   mockReservationsRepo,
   mockUsersRepo,
+  mockOfferorImagesRepo,
 } from '../testing-mocks';
 import { ConflictException } from '@nestjs/common';
 import { v4 as uuidv4 } from 'uuid';
 import User from '../auth/user.entity';
 import * as bcrypt from 'bcrypt';
 import ObtainOfferorsDTO from './dto/obtain-offerors.dto';
-import OfferorReputation from './types/offeror-reputation';
+import { OfferorReputation } from './types';
 import AmendBusinessInfoDTO from './dto/amend-business-info.dto';
 import AlterReputationDTO from './dto/alter-reputation.dto';
+import OfferorImage from './offeror-images.entity';
+import { DeleteGalleryImagesDTO } from './dto/delete-gallery-images.dto';
 
 let usersRepo: User[] = mockUsersRepo;
 let offerorsRepo: Offeror[] = mockOfferorsRepo;
+let offerorImagesRepo: OfferorImage[] = mockOfferorImagesRepo;
 
 describe('OfferorsController', () => {
   let controller: OfferorsController;
@@ -30,165 +34,262 @@ describe('OfferorsController', () => {
       .useMocker((token) => {
         if (token === OfferorsService)
           return {
-            recordOfferor: jest
-              .fn()
-              .mockImplementation(
-                (recordOfferorDTO: RecordOfferorDTO): { id: string } => {
-                  const { username } = recordOfferorDTO;
+            recordOfferor: jest.fn().mockImplementation(
+              (
+                recordOfferorDTO: RecordOfferorDTO,
+                files: {
+                  highlight: Express.Multer.File;
+                  gallery: Express.Multer.File[];
+                },
+              ): { id: string } => {
+                const { username } = recordOfferorDTO;
 
-                  const inUse: Offeror | undefined = offerorsRepo.find(
-                    (offeror) => offeror.user.username === username,
+                const inUse: User | undefined = usersRepo.find(
+                  (user) => user.username === username,
+                );
+
+                if (inUse)
+                  throw new ConflictException(
+                    `Username ${username} is already in use.`,
                   );
 
-                  if (inUse)
-                    throw new ConflictException(
-                      `Username ${username} is already in use.`,
-                    );
+                const {
+                  password,
+                  name,
+                  address,
+                  coordinates,
+                  email,
+                  telephone,
+                  service,
+                  businessHours,
+                } = recordOfferorDTO;
 
-                  const {
-                    password,
-                    name,
-                    address,
-                    email,
-                    telephone,
-                    businessHours,
-                  } = recordOfferorDTO;
+                const user: User = {
+                  username,
+                  password: bcrypt.hashSync(password, 9),
+                  privilege: 'OFFEROR',
+                  created: new Date().toString(),
+                  incidents: [],
+                  complaints: [],
+                };
 
-                  const user: User = {
-                    username,
-                    password: bcrypt.hashSync(password, 9),
-                    privilege: 'OFFEROR',
-                    created: new Date().toString(),
-                    incidents: [],
-                    complaints: [],
-                  };
+                usersRepo.push(user);
 
-                  usersRepo.push(user);
+                const offeror: Offeror = {
+                  id: uuidv4(),
+                  name,
+                  address: JSON.parse(address),
+                  coordinates: JSON.parse(coordinates),
+                  telephone,
+                  email,
+                  service: JSON.parse(service),
+                  businessHours: JSON.parse(businessHours),
+                  reputation: {
+                    responsiveness: 10,
+                    compliance: 10,
+                    timeliness: 10,
+                  },
+                  user,
+                  requests: [],
+                  images: [],
+                  events: [],
+                };
 
-                  const offeror: Offeror = {
+                const highlightImage: OfferorImage = {
+                  id: uuidv4(),
+                  offeror,
+                  type: 'HIGHLIGHT',
+                  destination: files.highlight.destination,
+                };
+
+                offerorImagesRepo.push(highlightImage);
+
+                offeror.images.push(highlightImage);
+
+                for (const galleryImage of files.gallery) {
+                  const image: OfferorImage = {
                     id: uuidv4(),
-                    name,
-                    address: JSON.parse(address),
-                    telephone,
-                    email,
-                    businessHours,
-                    reputation: {
-                      responsiveness: 10,
-                      compliance: 10,
-                      timeliness: 10,
-                    },
-                    user,
-                    requests: [],
+                    offeror,
+                    type: 'GALLERY',
+                    destination: galleryImage.destination,
                   };
 
-                  offerorsRepo.push(offeror);
+                  offerorImagesRepo.push(image);
 
-                  return { id: offeror.id };
+                  offeror.images.push(image);
+                }
+
+                offerorsRepo.push(offeror);
+
+                return { id: offeror.id };
+              },
+            ),
+            addGalleryImages: jest
+              .fn()
+              .mockImplementation(
+                (
+                  user: User,
+                  files: { gallery: Express.Multer.File[] },
+                ): void => {
+                  offerorsRepo = offerorsRepo.map((offeror) => {
+                    if (offeror.user.username === user.username) {
+                      for (const galleryImage of files.gallery) {
+                        const image: OfferorImage = {
+                          id: uuidv4(),
+                          offeror,
+                          type: 'GALLERY',
+                          destination: galleryImage.destination,
+                        };
+
+                        offerorImagesRepo.push(image);
+
+                        offeror.images.push(image);
+                      }
+                    }
+
+                    return offeror;
+                  });
                 },
               ),
             obtainOfferors: jest
               .fn()
-              .mockImplementation((obtainOfferorsDTO: ObtainOfferorsDTO) => {
-                type ObtainedOfferor = Offeror & { reservationsMade: number };
+              .mockImplementation(
+                (obtainOfferorsDTO: ObtainOfferorsDTO): Offeror[] => {
+                  type ObtainedOfferor = Offeror & { reservationsMade: number };
 
-                const { name, city, reservationsMade, take } =
-                  obtainOfferorsDTO;
+                  const { name, city, reservationsMade, take } =
+                    obtainOfferorsDTO;
 
-                let offerors: Offeror[];
+                  let offerors: Offeror[];
 
-                const upperName: string = name.toUpperCase();
+                  const upperName: string = name.toUpperCase();
+                  if (name)
+                    offerors = offerorsRepo.filter((offeror) =>
+                      offeror.name.toUpperCase().match(`/${upperName}/g`),
+                    );
 
-                if (name)
-                  offerors = offerorsRepo.filter((offeror) =>
-                    offeror.name.toUpperCase().match(`/${upperName}/g`),
+                  const upperCity: string = name.toUpperCase();
+
+                  if (city)
+                    offerors = (name ? offerors : offerorsRepo).filter(
+                      (offeror) =>
+                        offeror.address.city.name
+                          .toUpperCase()
+                          .match(`/${upperCity}/g`),
+                    );
+
+                  let obtainedOfferors: ObtainedOfferor[];
+
+                  obtainedOfferors = offerors.map(
+                    (offeror: ObtainedOfferor) => {
+                      let reservationsMade = 0;
+
+                      mockReservationsRepo.forEach((reservation) => {
+                        if (reservation.request.offeror.id === offeror.id)
+                          reservationsMade++;
+                      });
+
+                      return { ...offeror, reservationsMade };
+                    },
                   );
 
-                const upperCity: string = name.toUpperCase();
+                  if (reservationsMade === 'ASC')
+                    obtainedOfferors.sort((a, b) =>
+                      a.reservationsMade > b.reservationsMade ? 1 : -1,
+                    );
 
-                if (city)
-                  offerors = (name ? offerors : offerorsRepo).filter(
-                    (offeror) =>
-                      offeror.address.city.name
-                        .toUpperCase()
-                        .match(`/${upperCity}/g`),
+                  if (reservationsMade === 'DESC')
+                    obtainedOfferors.sort((a, b) =>
+                      a.reservationsMade > b.reservationsMade ? -1 : 1,
+                    );
+
+                  return obtainedOfferors.slice(0, take);
+                },
+              ),
+            claimBusinessInfo: jest
+              .fn()
+              .mockImplementation(
+                (
+                  user: User,
+                ): Omit<
+                  Offeror,
+                  | 'id'
+                  | 'coordinates'
+                  | 'reputation'
+                  | 'user'
+                  | 'requests'
+                  | 'images'
+                  | 'events'
+                > => {
+                  const offeror: Offeror = offerorsRepo.find(
+                    (offeror) => offeror.user.username === user.username,
                   );
 
-                let obtainedOfferors: ObtainedOfferor[];
+                  const {
+                    name,
+                    address,
+                    telephone,
+                    email,
+                    service,
+                    businessHours,
+                  } = offeror;
 
-                obtainedOfferors = offerors.map((offeror: ObtainedOfferor) => {
-                  let reservationsMade = 0;
+                  return {
+                    name,
+                    address,
+                    telephone,
+                    email,
+                    service,
+                    businessHours,
+                  };
+                },
+              ),
+            claimReputation: jest
+              .fn()
+              .mockImplementation((user: User): OfferorReputation => {
+                const offeror: Offeror = offerorsRepo.find(
+                  (offeror) => offeror.user.username === user.username,
+                );
 
-                  mockReservationsRepo.forEach((reservation) => {
-                    if (reservation.request.offeror.id === offeror.id)
-                      reservationsMade++;
-                  });
+                const {
+                  reputation: { responsiveness, compliance, timeliness },
+                } = offeror;
 
-                  return { ...offeror, reservationsMade };
-                });
-
-                if (reservationsMade === 'ASC')
-                  obtainedOfferors.sort((a, b) =>
-                    a.reservationsMade > b.reservationsMade ? 1 : -1,
-                  );
-
-                if (reservationsMade === 'DESC')
-                  obtainedOfferors.sort((a, b) =>
-                    a.reservationsMade > b.reservationsMade ? -1 : 1,
-                  );
-
-                return obtainedOfferors.slice(0, take);
+                return { responsiveness, compliance, timeliness };
               }),
-            claimBusinessInfo: jest.fn().mockImplementation((user: User) => {
-              const offeror: Offeror = mockOfferorsRepo.find(
-                (offeror) => offeror.user.username === user.username,
-              );
-
-              const { name, address, telephone, email, businessHours } =
-                offeror;
-
-              return { name, address, telephone, email, businessHours };
-            }),
-            claimReputation: jest.fn().mockImplementation((user: User) => {
-              const offeror: Offeror = mockOfferorsRepo.find(
-                (offeror) => offeror.user.username === user.username,
-              );
-
-              const {
-                reputation: { responsiveness, compliance, timeliness },
-              } = offeror;
-
-              return { responsiveness, compliance, timeliness };
-            }),
             amendBusinessInfo: jest
               .fn()
               .mockImplementation(
-                (user: User, amendBusinessInfoDTO: AmendBusinessInfoDTO) => {
-                  let id: string;
-
+                (
+                  user: User,
+                  amendBusinessInfoDTO: AmendBusinessInfoDTO,
+                ): void => {
                   offerorsRepo = offerorsRepo.map((offeror) => {
                     if (offeror.user.username === user.username) {
-                      id = offeror.id;
-
                       return {
                         ...offeror,
-                        address: JSON.stringify(offeror.address),
-                        ...amendBusinessInfoDTO,
+                        name: amendBusinessInfoDTO.name,
+                        address: JSON.parse(amendBusinessInfoDTO.address),
+                        telephone: amendBusinessInfoDTO.telephone,
+                        email: amendBusinessInfoDTO.email,
+                        service: JSON.parse(amendBusinessInfoDTO.service),
+                        businessHours: JSON.parse(
+                          amendBusinessInfoDTO.businessHours,
+                        ),
                       };
                     }
 
-                    return {
-                      ...offeror,
-                      address: JSON.parse(JSON.stringify(offeror.address)),
-                    };
+                    return offeror;
                   });
-
-                  return { id };
                 },
               ),
             alterReputation: jest
               .fn()
               .mockImplementation(
-                (id: string, alterReputationDTO: AlterReputationDTO) => {
+                (
+                  id: string,
+                  alterReputationDTO: AlterReputationDTO,
+                ): { id: string } => {
                   offerorsRepo = offerorsRepo.map((offeror) => {
                     if (offeror.id === id) {
                       id = offeror.id;
@@ -209,6 +310,60 @@ describe('OfferorsController', () => {
                   return { id };
                 },
               ),
+            changeHighlightImage: jest
+              .fn()
+              .mockImplementation(
+                (
+                  user: User,
+                  files: { highlight: Express.Multer.File },
+                ): void => {
+                  offerorsRepo = offerorsRepo.map((offeror) => {
+                    if (offeror.user.username === user.username) {
+                      offeror.images.map((image) => {
+                        if (image.type === 'HIGHLIGHT') {
+                          image.destination = files.highlight.destination;
+
+                          return image;
+                        }
+
+                        return image;
+                      });
+                    }
+
+                    return offeror;
+                  });
+
+                  offerorImagesRepo = offerorImagesRepo.map((image) => {
+                    if (
+                      image.offeror.user.username === user.username &&
+                      image.type === 'HIGHLIGHT'
+                    ) {
+                      image.destination = files.highlight.destination;
+                    }
+
+                    return image;
+                  });
+                },
+              ),
+            deleteGalleryImages: jest
+              .fn()
+              .mockImplementation(
+                (deleteGalleryImagesDTO: DeleteGalleryImagesDTO): void => {
+                  const { imageIds } = deleteGalleryImagesDTO;
+
+                  const ids: string[] = JSON.parse(imageIds).ids;
+
+                  offerorsRepo = offerorsRepo.filter((offeror) =>
+                    offeror.images.filter(
+                      (image) => !ids.find((id) => id === image.id),
+                    ),
+                  );
+
+                  offerorImagesRepo = offerorImagesRepo.filter(
+                    (image) => !ids.find((id) => id === image.id),
+                  );
+                },
+              ),
           };
       })
       .compile();
@@ -217,72 +372,171 @@ describe('OfferorsController', () => {
   });
 
   describe('recordOfferor', () => {
-    it('should return an object that holds an id property', () => {
-      const dto: RecordOfferorDTO = {
-        username: 'doghouse',
-        password: 'dogHouse@60',
-        name: 'Dog House',
-        address: JSON.stringify({
-          street: { name: 'Central Ave SW', numeration: '1216' },
-          city: { name: 'Albuquerque', postalCode: '87102' },
-          country: 'New Mexico',
-        }),
-        telephone: '(505) 913 761',
-        email: 'doghouse@email.com',
-        businessHours:
-          '7am - 10pm Monday - Thursday; 7am - 12am Friday - Saturday; 7am - 9pm Sunday',
-      };
+    const recordOfferorDTO: RecordOfferorDTO = {
+      username: 'cafeenigma',
+      password: 'cafeEnigma@24',
+      name: 'Cafe Enigma',
+      address: JSON.stringify({
+        street: { name: 'Cara Lazara', numeration: '7' },
+        city: { name: 'Čačak', postalCode: '32000' },
+        country: 'Serbia',
+      }),
+      coordinates: JSON.stringify({ latitude: 0, longitude: 0 }),
+      telephone: '032 343878',
+      email: 'cafeenigma@email.com',
+      service: JSON.stringify({
+        category: 'Café/Pub',
+        service: {
+          name: 'Drinking',
+          description: 'Alcoholic and nonalcoholic drinks',
+        },
+      }),
+      businessHours: JSON.stringify({
+        Monday: { from: '08:00', to: '00:00' },
+        Tuesday: { from: '08:00', to: '00:00' },
+        Wednesday: { from: '08:00', to: '00:00' },
+        Thursday: { from: '08:00', to: '00:00' },
+        Friday: { from: '08:00', to: '00:00' },
+        Saturday: { from: '08:00', to: '01:00' },
+        Sunday: { from: '08:00', to: '01:00' },
+      }),
+    };
 
-      expect(controller.recordOfferor(dto)).toMatchObject<{ id: string }>({
+    const files: {
+      highlight: Express.Multer.File;
+      gallery: Express.Multer.File[];
+    } = {
+      highlight: {
+        buffer: Buffer.alloc(1000000),
+        destination: undefined,
+        fieldname: 'highlight',
+        filename: 'enigma_highlight_image.webp',
+        mimetype: 'image/webp',
+        originalname: 'enigma_highlight_image.webp',
+        path: undefined,
+        size: 1000000,
+        stream: undefined,
+        encoding: 'UTF-8',
+      },
+      gallery: [
+        {
+          buffer: Buffer.alloc(1000000),
+          destination: undefined,
+          fieldname: 'gallery',
+          filename: 'enigma_gallery_image.webp',
+          mimetype: 'image/webp',
+          originalname: 'enigma_gallery_image.webp',
+          path: undefined,
+          size: 1000000,
+          stream: undefined,
+          encoding: 'UTF-8',
+        },
+        {
+          buffer: Buffer.alloc(1000000),
+          destination: undefined,
+          fieldname: 'gallery',
+          filename: 'enigma_gallery_image_0.webp',
+          mimetype: 'image/webp',
+          originalname: 'enigma_gallery_image_0.webp',
+          path: undefined,
+          size: 1000000,
+          stream: undefined,
+          encoding: 'UTF-8',
+        },
+      ],
+    };
+
+    it('should return an object that holds an id property', () => {
+      expect(controller.recordOfferor(recordOfferorDTO, files)).toMatchObject<{
+        id: string;
+      }>({
         id: expect.any(String),
       });
     });
 
     it('should throw a ConflictException', () => {
-      const dto: RecordOfferorDTO = {
-        username: 'lalosalamanca',
-        password: 'dogHouse@60',
-        name: 'Dog House',
-        address: JSON.stringify({
-          street: { name: 'Central Ave SW', numeration: '1216' },
-          city: { name: 'Albuquerque', postalCode: '87102' },
-          country: 'New Mexico',
-        }),
-        telephone: '(505) 913 761',
-        email: 'doghouse@email.com',
-        businessHours:
-          '7am - 10pm Monday - Thursday; 7am - 12am Friday - Saturday; 7am - 9pm Sunday',
+      recordOfferorDTO.username = 'johndoe';
+      expect(() => controller.recordOfferor(recordOfferorDTO, files)).toThrow(
+        `Username ${recordOfferorDTO.username} is already in use.`,
+      );
+    });
+  });
+
+  describe('addGalleryImages', () => {
+    it('should be void', () => {
+      const files: { gallery: Express.Multer.File[] } = {
+        gallery: [
+          {
+            buffer: Buffer.alloc(1000000),
+            destination: undefined,
+            fieldname: 'gallery',
+            filename: 'enigma_gallery_image_1.webp',
+            mimetype: 'image/webp',
+            originalname: 'enigma_gallery_image.webp',
+            path: undefined,
+            size: 1000000,
+            stream: undefined,
+            encoding: 'UTF-8',
+          },
+          {
+            buffer: Buffer.alloc(1000000),
+            destination: undefined,
+            fieldname: 'gallery',
+            filename: 'enigma_gallery_image_2.webp',
+            mimetype: 'image/webp',
+            originalname: 'enigma_gallery_image_0.webp',
+            path: undefined,
+            size: 1000000,
+            stream: undefined,
+            encoding: 'UTF-8',
+          },
+        ],
       };
 
-      expect(() => controller.recordOfferor(dto)).toThrow(
-        `Username ${dto.username} is already in use.`,
-      );
+      expect(
+        controller.addGalleryImages(
+          offerorsRepo[offerorsRepo.length - 1].user,
+          files,
+        ),
+      ).toBeUndefined();
     });
   });
 
   describe('obtainOfferors', () => {
     it('should return an instance of Offeror array', () => {
-      const dto: ObtainOfferorsDTO = {
+      const obtainOfferorsDTO: ObtainOfferorsDTO = {
         name: 'Los Pollos Hermanos',
         city: 'Albaquerque',
         reservationsMade: 'ASC',
         take: 10,
       };
 
-      expect(controller.obtainOfferors(dto)).toBeInstanceOf(Array<Offeror>);
+      expect(controller.obtainOfferors(obtainOfferorsDTO)).toBeInstanceOf(
+        Array<Offeror>,
+      );
     });
   });
 
   describe('claimBusinessInfo', () => {
-    it('should return an object that holds name, address, telephone, email, and businessHours properties', () => {
+    it('should return an object that holds name, address, telephone, email, service and businessHours properties', () => {
       expect(controller.claimBusinessInfo(usersRepo[5])).toMatchObject<
-        Omit<Offeror, 'id' | 'reputation' | 'user' | 'requests'>
+        Omit<
+          Offeror,
+          | 'id'
+          | 'coordinates'
+          | 'reputation'
+          | 'user'
+          | 'requests'
+          | 'images'
+          | 'events'
+        >
       >({
         name: expect.any(String),
         address: expect.any(Object),
         telephone: expect.any(String),
         email: expect.any(String),
-        businessHours: expect.any(String),
+        service: expect.any(Object),
+        businessHours: expect.any(Object),
       });
     });
   });
@@ -300,18 +554,17 @@ describe('OfferorsController', () => {
   });
 
   describe('amendBusinessInfo', () => {
-    it('should return an object that holds id property', () => {
+    it('should be void', () => {
       expect(
         controller.amendBusinessInfo(usersRepo[5], {
           name: offerorsRepo[1].name,
           address: JSON.stringify(offerorsRepo[1].address),
           telephone: offerorsRepo[1].telephone,
           email: offerorsRepo[1].email,
-          businessHours: offerorsRepo[1].businessHours,
+          service: JSON.stringify(offerorsRepo[1].service),
+          businessHours: JSON.stringify(offerorsRepo[1].businessHours),
         }),
-      ).toMatchObject<{ id: string }>({
-        id: expect.any(String),
-      });
+      ).toBeUndefined();
     });
   });
 
@@ -326,6 +579,46 @@ describe('OfferorsController', () => {
       ).toMatchObject<{ id: string }>({
         id: expect.any(String),
       });
+    });
+  });
+
+  describe('changeHighlightImage', () => {
+    it('should be void', () => {
+      const files: { highlight: Express.Multer.File } = {
+        highlight: {
+          buffer: Buffer.alloc(1000000),
+          destination: undefined,
+          fieldname: 'highlight',
+          filename: 'enigma_highlight_image_0.webp',
+          mimetype: 'image/webp',
+          originalname: 'enigma_gallery_image_0.webp',
+          path: undefined,
+          size: 1000000,
+          stream: undefined,
+          encoding: 'UTF-8',
+        },
+      };
+
+      expect(
+        controller.changeHighlightImage(
+          offerorsRepo[offerorsRepo.length - 1].user,
+          files,
+        ),
+      ).toBeUndefined();
+    });
+  });
+
+  describe('deleteGalleryImages', () => {
+    it('should be void', () => {
+      const deleteGalleryImagesDTO: DeleteGalleryImagesDTO = {
+        imageIds: JSON.stringify({
+          ids: [offerorImagesRepo[0].id, offerorImagesRepo[1].id],
+        }),
+      };
+
+      expect(
+        controller.deleteGalleryImages(deleteGalleryImagesDTO),
+      ).toBeUndefined();
     });
   });
 });

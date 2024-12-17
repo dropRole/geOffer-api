@@ -10,7 +10,7 @@ import {
   mockUsersRepo,
 } from '../testing-mocks';
 import Incident from '../incidents/incident.entity';
-import { UnauthorizedException, NotFoundException } from '@nestjs/common';
+import { NotFoundException } from '@nestjs/common';
 import { v4 as uuidv4 } from 'uuid';
 import ObtainComplaintsDTO from './dto/obtain-complaints.dto';
 import RewriteComplaintDTO from './dto/rewrite-complaint.dto';
@@ -40,16 +40,6 @@ describe('ComplaintsController', () => {
                   const incident: Incident = mockIncidentsRepo.find(
                     (incident) => incident.id === idIncident,
                   );
-
-                  if (
-                    incident.reservation.request.offeree.user.username !==
-                      user.username &&
-                    incident.reservation.request.offeror.user.username !==
-                      user.username
-                  )
-                    throw new UnauthorizedException(
-                      `You're not a participant in the ${idIncident} incident.`,
-                    );
 
                   let counteredComplaint: Complaint;
 
@@ -83,25 +73,9 @@ describe('ComplaintsController', () => {
               .fn()
               .mockImplementation(
                 (
-                  user: User,
                   idIncident: string,
                   obtainComplaintsDTO: ObtainComplaintsDTO,
                 ): Complaint[] => {
-                  const incident: Incident = mockIncidentsRepo.find(
-                    (incident) => incident.id === idIncident,
-                  );
-
-                  if (
-                    user.privilege !== 'SUPERUSER' &&
-                    incident.reservation.request.offeree.user.username !==
-                      user.username &&
-                    incident.reservation.request.offeror.user.username !==
-                      user.username
-                  )
-                    throw new UnauthorizedException(
-                      `You're not a participant in the ${idIncident} incident.`,
-                    );
-
                   const { writtenOrder, take } = obtainComplaintsDTO;
 
                   const complaints: Complaint[] = complaintsRepo.filter(
@@ -125,18 +99,12 @@ describe('ComplaintsController', () => {
               .fn()
               .mockImplementation(
                 (
-                  user: User,
                   id: string,
                   rewriteComplaintDTO: RewriteComplaintDTO,
                 ): { id: string } => {
                   const rewrittenComplaint: Complaint = complaintsRepo.find(
                     (complaint) => complaint.id === id,
                   );
-
-                  if (rewrittenComplaint.author.username !== user.username)
-                    throw new UnauthorizedException(
-                      `You haven't wrote the ${id} complaint.`,
-                    );
 
                   const { content } = rewriteComplaintDTO;
 
@@ -154,16 +122,7 @@ describe('ComplaintsController', () => {
               ),
             withdrawComplaint: jest
               .fn()
-              .mockImplementation((user: User, id: string): { id: string } => {
-                const complaint: Complaint = complaintsRepo.find(
-                  (complaint) => complaint.id === id,
-                );
-
-                if (complaint.author.username !== user.username)
-                  throw new UnauthorizedException(
-                    `You haven't wrote the ${id} complaint.`,
-                  );
-
+              .mockImplementation((id: string): { id: string } => {
                 complaintsRepo = complaintsRepo.map((complaint) => {
                   if (complaint.id !== complaint.id) return complaint;
 
@@ -182,7 +141,7 @@ describe('ComplaintsController', () => {
   describe('writeComplaint', () => {
     it('should return an object holding id property', () => {
       const writeComplaintDTO: WriteComplaintDTO = {
-        content: "I'll give you an offer.",
+        content: 'They were too loud even after the film ended.',
         idCounteredComplaint: undefined,
         idIncident: mockIncidentsRepo[mockIncidentsRepo.length - 1].id,
       };
@@ -193,23 +152,6 @@ describe('ComplaintsController', () => {
           writeComplaintDTO,
         ),
       ).toMatchObject<{ id: string }>({ id: expect.any(String) });
-    });
-
-    it('should throw an UnauthorizedException', () => {
-      const writeComplaintDTO: WriteComplaintDTO = {
-        content: "I'll give you an offer.",
-        idCounteredComplaint: undefined,
-        idIncident: mockIncidentsRepo[1].id,
-      };
-
-      expect(() =>
-        controller.writeComplaint(
-          mockIncidentsRepo[mockIncidentsRepo.length - 1].openedBy,
-          writeComplaintDTO,
-        ),
-      ).toThrow(
-        `You're not a participant in the ${mockIncidentsRepo[1].id} incident.`,
-      );
     });
   });
 
@@ -222,7 +164,6 @@ describe('ComplaintsController', () => {
 
       expect(
         controller.obtainComplaints(
-          mockUsersRepo[0],
           mockIncidentsRepo[0].id,
           obtainComplaintsDTO,
         ),
@@ -233,12 +174,11 @@ describe('ComplaintsController', () => {
   describe('rewriteComplaint', () => {
     it('should return an object holding id property', () => {
       const rewriteComplaintDTO: RewriteComplaintDTO = {
-        content: "I'll give you an offer that you won't resist.",
+        content: 'They were too loud even after the film ended. Unbearable.',
       };
 
       expect(
         controller.rewriteComplaint(
-          mockUsersRepo[1],
           complaintsRepo[complaintsRepo.length - 1].id,
           rewriteComplaintDTO,
         ),
@@ -246,31 +186,12 @@ describe('ComplaintsController', () => {
         id: complaintsRepo[complaintsRepo.length - 1].id,
       });
     });
-
-    it('should throw an UnauthorizedException', () => {
-      const rewriteComplaintDTO: RewriteComplaintDTO = {
-        content: "I'll give you an offer that you won't resist.",
-      };
-
-      expect(() =>
-        controller.rewriteComplaint(
-          mockUsersRepo[0],
-          complaintsRepo[complaintsRepo.length - 1].id,
-          rewriteComplaintDTO,
-        ),
-      ).toThrow(
-        `You haven't wrote the ${
-          complaintsRepo[complaintsRepo.length - 1].id
-        } complaint.`,
-      );
-    });
   });
 
   describe('withdrawComplaint', () => {
     it('should return an object holding id property', () => {
       expect(
         controller.withdrawComplaint(
-          mockUsersRepo[1],
           complaintsRepo[complaintsRepo.length - 1].id,
         ),
       ).toMatchObject<{ id: string }>({

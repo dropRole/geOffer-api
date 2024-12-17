@@ -7,7 +7,6 @@ import Reservation from './reservation.entity';
 import {
   mockIncidentsRepo,
   mockOffereesRepo,
-  mockOfferorsRepo,
   mockRequestsRepo,
   mockReservationsRepo,
   mockUsersRepo,
@@ -37,10 +36,7 @@ describe('ReservationsController', () => {
             makeReservation: jest
               .fn()
               .mockImplementation(
-                (
-                  user: User,
-                  makeReservationDTO: MakeReservationDTO,
-                ): { id: string } => {
+                (makeReservationDTO: MakeReservationDTO): { id: string } => {
                   const { idRequest } = makeReservationDTO;
 
                   const request: Request = mockRequestsRepo.find(
@@ -52,12 +48,7 @@ describe('ReservationsController', () => {
                       `Request identified with ${request.id} wasn't found.`,
                     );
 
-                  if (request.offeror.user.username !== user.username)
-                    throw new UnauthorizedException(
-                      `The ${request.id} request wasn't intended for you.`,
-                    );
-
-                  let reservation: Reservation = mockReservationsRepo.find(
+                  let reservation: Reservation = reservationsRepo.find(
                     (reservation) => reservation.request.id === request.id,
                   );
 
@@ -201,7 +192,7 @@ describe('ReservationsController', () => {
               ),
             withdrawReservation: jest
               .fn()
-              .mockImplementation((user: User, id: string): { id: string } => {
+              .mockImplementation((id: string): { id: string } => {
                 const reservation: Reservation = reservationsRepo.find(
                   (request) => request.id === id,
                 );
@@ -209,11 +200,6 @@ describe('ReservationsController', () => {
                 if (!reservation)
                   throw new NotFoundException(
                     `Request identified with ${reservation.id} wasn't found.`,
-                  );
-
-                if (reservation.request.offeror.user.username !== user.username)
-                  throw new UnauthorizedException(
-                    `You haven't made the ${reservation.id} reservation.`,
                   );
 
                 const incident: Incident = mockIncidentsRepo.find(
@@ -239,32 +225,20 @@ describe('ReservationsController', () => {
   });
 
   describe('makeReservation', () => {
-    it('should return an object holding id property', () => {
-      const makeReservationDTO: MakeReservationDTO = {
-        idRequest: mockRequestsRepo[mockRequestsRepo.length - 1].id,
-      };
+    const makeReservationDTO: MakeReservationDTO = {
+      idRequest: mockRequestsRepo[mockRequestsRepo.length - 1].id,
+    };
 
-      expect(
-        controller.makeReservation(
-          mockRequestsRepo[mockRequestsRepo.length - 1].offeror.user,
-          makeReservationDTO,
-        ),
-      ).toMatchObject<{ id: string }>({
+    it('should return an object holding id property', () => {
+      expect(controller.makeReservation(makeReservationDTO)).toMatchObject<{
+        id: string;
+      }>({
         id: expect.any(String),
       });
     });
 
     it('should throw ConflictException', () => {
-      const makeReservationDTO: MakeReservationDTO = {
-        idRequest: mockRequestsRepo[mockRequestsRepo.length - 1].id,
-      };
-
-      expect(() =>
-        controller.makeReservation(
-          mockRequestsRepo[mockRequestsRepo.length - 1].offeror.user,
-          makeReservationDTO,
-        ),
-      ).toThrow(
+      expect(() => controller.makeReservation(makeReservationDTO)).toThrow(
         `The request ${makeReservationDTO.idRequest} is already reserved.`,
       );
     });
@@ -290,23 +264,9 @@ describe('ReservationsController', () => {
     it('should return an object holding id property', () => {
       const id: string = reservationsRepo[reservationsRepo.length - 1].id;
 
-      expect(
-        controller.withdrawReservation(
-          reservationsRepo[reservationsRepo.length - 1].request.offeror.user,
-          id,
-        ),
-      ).toMatchObject<{ id: string }>({
+      expect(controller.withdrawReservation(id)).toMatchObject<{ id: string }>({
         id,
       });
-    });
-
-    it('should throw a ConflictException', () => {
-      expect(() =>
-        controller.withdrawReservation(
-          reservationsRepo[0].request.offeror.user,
-          reservationsRepo[0].id,
-        ),
-      ).toThrow(`There're pending incidents on the reservation.`);
     });
   });
 });

@@ -1,8 +1,8 @@
 import { Entity, PrimaryColumn, Check, Column, OneToMany } from 'typeorm';
 import { Exclude } from 'class-transformer';
 import { UserPrivilege } from './types';
-import Incident from 'src/incidents/incident.entity';
-import Complaint from 'src/complaints/complaint.entity';
+import Incident from '../incidents/incident.entity';
+import Complaint from '../complaints/complaint.entity';
 
 @Entity('users')
 export default class User {

@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { AuthController } from './auth.controller';
 import SignupDTO from './dto/signup.dto';
 import LoginDTO from './dto/login.dto';
-import Token from './types/token';
+import { Token } from './types';
 import User from './user.entity';
 import AlterUsernameDTO from './dto/alter-username.dto';
 import AlterPasswordDTO from './dto/alter-password.dto';
@@ -169,41 +169,35 @@ describe('AuthController', () => {
   });
 
   describe('signup', () => {
-    it('should be void', () => {
-      const dto: SignupDTO = {
-        username: 'ignaciovarga',
-        password: 'ignacioVarga@71',
-        name: 'Ignacio',
-        surname: 'Varga',
-        email: 'ignaciovarga@email.com',
-      };
+    const signupDTO: SignupDTO = {
+      username: 'babydoe',
+      password: 'babydoe@24',
+      name: 'Baby',
+      surname: 'Doe',
+      email: 'babydoe@email.com',
+    };
 
-      expect(controller.signup(dto)).toBeUndefined();
+    it('should be void', () => {
+      expect(controller.signup(signupDTO)).toBeUndefined();
     });
 
     it('should throw a ConflictException', () => {
-      const dto: SignupDTO = {
-        username: 'mikeehrmantraut',
-        password: 'ignacioVarga@71',
-        name: 'Ignacio',
-        surname: 'Varga',
-        email: 'ignaciovarga@email.com',
-      };
+      signupDTO.username = 'johndoe';
 
-      expect(() => controller.signup(dto)).toThrow(
-        `Username ${dto.username} is already in use.`,
+      expect(() => controller.signup(signupDTO)).toThrow(
+        `Username ${signupDTO.username} is already in use.`,
       );
     });
   });
 
   describe('login', () => {
-    it('should return an object holding type, value and expire properties', () => {
-      const dto: LoginDTO = {
-        username: usersRepo[0].username,
-        password: 'gusFring@58',
-      };
+    const loginDTO: LoginDTO = {
+      username: usersRepo[0].username,
+      password: 'geoffer@Admin24',
+    };
 
-      expect(controller.login(dto)).toMatchObject<Token>({
+    it('should return an object holding type, value and expire properties', () => {
+      expect(controller.login(loginDTO)).toMatchObject<Token>({
         type: 'access',
         value: expect.any(String),
         expire: expect.any(String),
@@ -211,12 +205,11 @@ describe('AuthController', () => {
     });
 
     it('should throw a UnauthorizedException', () => {
-      const dto: LoginDTO = {
-        username: usersRepo[0].username,
-        password: usersRepo[1].password,
-      };
+      loginDTO.password = usersRepo[1].password;
 
-      expect(() => controller.login(dto)).toThrow('Check your credentials.');
+      expect(() => controller.login(loginDTO)).toThrow(
+        'Check your credentials.',
+      );
     });
   });
 
@@ -267,18 +260,18 @@ describe('AuthController', () => {
   describe('alterPassword', () => {
     it('should be void', () => {
       expect(
-        controller.alterPassword(usersRepo[0], {
-          password: 'gusFring@58',
-          newPassword: 'gusFring@58_alter',
+        controller.alterPassword(usersRepo[1], {
+          password: 'johnDoe@24',
+          newPassword: 'johnDoe@24Alter',
         }),
       ).toBeUndefined();
     });
 
     it('should throw a ConflictException', () => {
       expect(() =>
-        controller.alterPassword(usersRepo[0], {
-          password: 'johnDOE@23',
-          newPassword: 'johnDoe@23_alter',
+        controller.alterPassword(usersRepo[1], {
+          password: 'johnDOE@24',
+          newPassword: 'johnDoe@24_alter',
         }),
       ).toThrow('Invalid current password');
     });

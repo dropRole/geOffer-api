@@ -142,9 +142,9 @@ describe('OffereesController', () => {
     it('should be void', () => {
       expect(
         controller.amendBasics(mockUsersRepo[1], {
-          name: `${mockOffereesRepo[0].name}_amend`,
-          surname: `${mockOffereesRepo[0].surname}_amend`,
-          email: `${mockOffereesRepo[0].email}_amend`,
+          name: `${offereesRepo[0].name}_amend`,
+          surname: `${offereesRepo[0].surname}_amend`,
+          email: `${offereesRepo[0].email}_amend`,
         }),
       ).toBeUndefined();
     });

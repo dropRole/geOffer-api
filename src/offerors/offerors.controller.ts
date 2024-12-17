@@ -15,11 +15,11 @@ import { PrivilegedRoute } from '../auth/privileged-route.decorator';
 import RecordOfferorDTO from './dto/record-offeror.dto';
 import Offeror from './offeror.entity';
 import ObtainOfferorsDTO from './dto/obtain-offerors.dto';
-import ExtractUser from 'src/auth/extract-user.decorator';
+import ExtractUser from '../auth/extract-user.decorator';
 import { OfferorReputation } from './types';
 import AmendBusinessInfoDTO from './dto/amend-business-info.dto';
 import AlterReputationDTO from './dto/alter-reputation.dto';
-import User from 'src/auth/user.entity';
+import User from '../auth/user.entity';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { DeleteGalleryImagesDTO } from './dto/delete-gallery-images.dto';
 
@@ -123,12 +123,8 @@ export class OfferorsController {
   @Delete('/images/gallery')
   @PrivilegedRoute('OFFEROR')
   deleteGalleryImages(
-    @ExtractUser() user: User,
     @Body() deleteGalleryImagesDTO: DeleteGalleryImagesDTO,
   ): Promise<{ deleteResults: string }> {
-    return this.offerorsService.deleteGalleryImages(
-      user,
-      deleteGalleryImagesDTO,
-    );
+    return this.offerorsService.deleteGalleryImages(deleteGalleryImagesDTO);
   }
 }

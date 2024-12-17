@@ -1,14 +1,14 @@
 import { Entity, Index, Column, ManyToOne, JoinColumn } from 'typeorm';
-import BaseEntity from 'src/base.entity';
-import Offeree from 'src/offerees/offeree.entity';
-import Offeror from 'src/offerors/offeror.entity';
-import { OfferorService } from 'src/offerors/types';
+import BaseEntity from '../base.entity';
+import Offeree from '../offerees/offeree.entity';
+import Offeror from '../offerors/offeror.entity';
+import { OfferorService } from '../offerors/types';
 
 @Entity('requests')
 @Index(['offeree', 'offeror'])
 export default class Request extends BaseEntity {
   @Column({ type: 'text' })
-  service: Pick<OfferorService, 'service'>;
+  service: Pick<OfferorService['service'], 'name'>;
 
   @Column({ type: 'text', nullable: true })
   note: string;

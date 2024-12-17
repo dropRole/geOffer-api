@@ -5,8 +5,7 @@ import {
   forwardGeocodingAPIResponse,
   reverseGeocodingAPIResponse,
 } from '../testing-mocks';
-import { ReversedLocation } from './types/reversed-location';
-import SearchedLocation from './types/searched-location';
+import { ReversedLocation, SearchedLocation } from './types';
 
 describe('LocationiqController', () => {
   let controller: LocationiqController;

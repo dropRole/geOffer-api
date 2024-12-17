@@ -1,4 +1,4 @@
-import BaseEntity from 'src/base.entity';
+import BaseEntity from '../base.entity';
 import { Check, Column, Entity, ManyToOne } from 'typeorm';
 import { OfferorImageType } from './types';
 import Offeror from './offeror.entity';

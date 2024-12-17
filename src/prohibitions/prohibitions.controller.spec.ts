@@ -219,28 +219,22 @@ describe('ProhibitionsController', () => {
   describe('declareProhibition', () => {
     const todaysDate: Date = new Date();
 
-    it('should return an object carrying id property', () => {
-      const declareProhibitionDTO: DeclareProhibitionDTO = {
-        beginning: todaysDate.toString(),
-        termination: new Date(
-          todaysDate.setDate(todaysDate.getDate() + 3),
-        ).toString(),
-        idIncident: mockIncidentsRepo[mockIncidentsRepo.length - 1].id,
-      };
+    const declareProhibitionDTO: DeclareProhibitionDTO = {
+      beginning: todaysDate.toString(),
+      termination: new Date(
+        todaysDate.setDate(todaysDate.getDate() + 3),
+      ).toString(),
+      idIncident: mockIncidentsRepo[mockIncidentsRepo.length - 1].id,
+    };
 
+    it('should return an object carrying id property', () => {
       expect(
         controller.declareProhibition(declareProhibitionDTO),
       ).toMatchObject<{ id: string }>({ id: expect.any(String) });
     });
 
     it('should throw a ConflictException', () => {
-      const declareProhibitionDTO: DeclareProhibitionDTO = {
-        beginning: todaysDate.toString(),
-        termination: new Date(
-          todaysDate.setDate(todaysDate.getDate() + 3),
-        ).toString(),
-        idIncident: mockIncidentsRepo[0].id,
-      };
+      declareProhibitionDTO.idIncident = mockIncidentsRepo[1].id;
 
       expect(() =>
         controller.declareProhibition(declareProhibitionDTO),
@@ -266,10 +260,10 @@ describe('ProhibitionsController', () => {
   });
 
   describe('alterTimeframe', () => {
+    let id: string = prohibitionsRepo[prohibitionsRepo.length - 1].id;
+
     it('should return an object carrying id property', () => {
       const todaysDate: Date = new Date();
-
-      const id: string = prohibitionsRepo[prohibitionsRepo.length - 1].id;
 
       expect(
         controller.alterTimeframe(id, {
@@ -281,9 +275,9 @@ describe('ProhibitionsController', () => {
     });
 
     it('should throw a NotFoundException', () => {
-      const todaysDate: Date = new Date();
+      id = uuidv4();
 
-      const id: string = uuidv4();
+      const todaysDate: Date = new Date();
 
       expect(() =>
         controller.alterTimeframe(id, {
