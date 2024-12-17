@@ -123,7 +123,6 @@ export class OfferorsController {
   @Delete('/images/gallery')
   @PrivilegedRoute('OFFEROR')
   deleteGalleryImages(
-    @ExtractUser() user: User,
     @Body() deleteGalleryImagesDTO: DeleteGalleryImagesDTO,
   ): Promise<{ deleteResults: string }> {
     return this.offerorsService.deleteGalleryImages(
