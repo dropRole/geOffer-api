@@ -8,7 +8,7 @@ import { OfferorService } from 'src/offerors/types';
 @Index(['offeree', 'offeror'])
 export default class Request extends BaseEntity {
   @Column({ type: 'text' })
-  service: Pick<OfferorService, 'service'>;
+  service: Pick<OfferorService['service'], 'name'>;
 
   @Column({ type: 'text', nullable: true })
   note: string;
