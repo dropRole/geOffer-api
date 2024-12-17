@@ -125,9 +125,6 @@ export class OfferorsController {
   deleteGalleryImages(
     @Body() deleteGalleryImagesDTO: DeleteGalleryImagesDTO,
   ): Promise<{ deleteResults: string }> {
-    return this.offerorsService.deleteGalleryImages(
-      user,
-      deleteGalleryImagesDTO,
-    );
+    return this.offerorsService.deleteGalleryImages(deleteGalleryImagesDTO);
   }
 }

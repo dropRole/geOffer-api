@@ -501,7 +501,6 @@ export class OfferorsService extends BaseService<Offeror> {
   }
 
   async deleteGalleryImages(
-    user: User,
     deleteGalleryImagesDTO: DeleteGalleryImagesDTO,
   ): Promise<{ deleteResults: string }> {
     const { imageIds } = deleteGalleryImagesDTO;
