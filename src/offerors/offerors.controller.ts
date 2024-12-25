@@ -30,6 +30,9 @@ import {
 import { DeleteGalleryImagesDTO } from './dto/delete-gallery-images.dto';
 import { AddEventDTO } from './dto/add-event.dto';
 import { DeleteEventsDTO } from './dto/delete-events.dto';
+import { ProvideServiceProductDTO } from './dto/provide-service-product.dto';
+import { AlterServiceProductInfoDTO } from './dto/alter-product-service-info.dto';
+import { DeleteServicesProductsDTO } from './dto/delete-services-products.dto';
 
 @Controller('offerors')
 export class OfferorsController {
@@ -48,6 +51,15 @@ export class OfferorsController {
     @UploadedFiles()
     files: { highlight: Express.Multer.File; gallery: Express.Multer.File[] },
   ): Promise<{ id: string; uploadResults: string }> {
+    return;
+  }
+
+  @Post('/services-products')
+  @PrivilegedRoute('OFFEROR')
+  provideServiceOrProduct(
+    @ExtractUser() user: User,
+    @Body() provideServiceProductDTO: ProvideServiceProductDTO,
+  ): Promise<void> {
     return;
   }
 
@@ -93,15 +105,14 @@ export class OfferorsController {
   claimBusinessInfo(
     @ExtractUser() user: User,
   ): Promise<
-    Omit<
+    Pick<
       Offeror,
-      | 'id'
+      | 'name'
+      | 'address'
       | 'coordinates'
-      | 'reputation'
-      | 'user'
-      | 'requests'
-      | 'images'
-      | 'events'
+      | 'telephone'
+      | 'email'
+      | 'businessHours'
     >
   > {
     return;
@@ -128,6 +139,16 @@ export class OfferorsController {
     @Param('id') id: string,
     @Body() alterReputationDTO: AlterReputationDTO,
   ): Promise<{ id: string }> {
+    return;
+  }
+
+  @Patch('/services-products/:idProductService/info')
+  @PrivilegedRoute('OFFEROR')
+  alterProductOrServiceInfo(
+    @Param('idProductService') idProductService: string,
+    @Body()
+    alterProductServiceInfoDTO: AlterServiceProductInfoDTO,
+  ): Promise<void> {
     return;
   }
 
@@ -173,6 +194,14 @@ export class OfferorsController {
   deleteGalleryImages(
     @Body() deleteGalleryImagesDTO: DeleteGalleryImagesDTO,
   ): Promise<{ deleteResults: string }> {
+    return;
+  }
+
+  @Delete('/services-products')
+  @PrivilegedRoute('OFFEROR')
+  deleteServicesOrProducts(
+    @Body() deleteServicesProductsDTO: DeleteServicesProductsDTO,
+  ): Promise<{ affectedRecords: string }> {
     return;
   }
 

@@ -1,23 +1,25 @@
 import {
   IsDateString,
   IsNotEmpty,
+  IsOptional,
   IsString,
   IsUUID,
   MaxLength,
 } from 'class-validator';
 
 export class AddEventDTO {
+  @IsString()
   @IsNotEmpty()
-  @MaxLength(200)
   name: string;
 
   @IsString()
   @IsNotEmpty()
-  description: string;
+  detailed: string;
 
   @IsDateString()
   beginning: string;
 
+  @IsOptional()
   @IsDateString()
   conclusion: string;
 
