@@ -1,12 +1,12 @@
 import BaseEntity from 'src/base.entity';
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
 import Offeror from './offeror.entity';
-import { ServiceProduct } from './service-product.entity';
-import { Event } from './event.entity';
-import { ServiceToRequest } from 'src/requests/service-to-request';
+import ServiceProduct from './service-product.entity';
+import Event from './event.entity';
+import ServiceToRequest from 'src/requests/service-to-request';
 
 @Entity('offerorsServicesProducts')
-export class ServiceToOfferor extends BaseEntity {
+export default class ServiceToOfferor extends BaseEntity {
   @Column({ type: 'numeric' })
   price: number;
 

@@ -8,10 +8,10 @@ import {
   OneToOne,
 } from 'typeorm';
 import { OfferorServiceCategory, OfferorServiceSubcategory } from './types';
-import { ServiceToOfferor } from './service-to-offeror';
+import ServiceToOfferor from './service-to-offeror';
 
 @Entity('servicesProducts')
-export class ServiceProduct extends BaseEntity {
+export default class ServiceProduct extends BaseEntity {
   @Column({ type: 'text' })
   serviceProduct: string;
 

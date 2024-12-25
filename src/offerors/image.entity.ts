@@ -2,7 +2,7 @@ import BaseEntity from 'src/base.entity';
 import { Check, Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
 import { OfferorImageType } from './types';
 import Offeror from './offeror.entity';
-import { Event } from './event.entity';
+import Event from './event.entity';
 
 @Entity('images')
 export default class Image extends BaseEntity {
