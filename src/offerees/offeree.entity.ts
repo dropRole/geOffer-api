@@ -5,10 +5,10 @@ import Request from 'src/requests/request.entity';
 
 @Entity('offerees')
 export default class Offeree extends BaseEntity {
-  @Column({ type: 'varchar', length: 35 })
+  @Column({ type: 'text' })
   name: string;
 
-  @Column({ type: 'varchar', length: 35 })
+  @Column({ type: 'text' })
   surname: string;
 
   @Column({ type: 'varchar', length: 254 })

@@ -5,16 +5,16 @@ import {
   OfferorBusinessHours,
   OfferorCoordinates,
   OfferorReputation,
-  OfferorService,
 } from './types';
 import User from 'src/auth/user.entity';
 import Request from 'src/requests/request.entity';
-import OfferorImage from './offeror-images.entity';
-import { OfferorEvent } from './offeror-event.entity';
+import Image from './image.entity';
+import { Event } from './event.entity';
+import { ServiceToOfferor } from './service-to-offeror';
 
 @Entity('offerors')
 export default class Offeror extends BaseEntity {
-  @Column({ type: 'varchar', length: 100 })
+  @Column({ type: 'text' })
   name: string;
 
   @Column({ type: 'jsonb' })
@@ -28,9 +28,6 @@ export default class Offeror extends BaseEntity {
 
   @Column({ type: 'varchar', length: 254 })
   email: string;
-
-  @Column({ type: 'jsonb' })
-  service: OfferorService;
 
   @Column({ type: 'jsonb' })
   businessHours: OfferorBusinessHours;
@@ -57,13 +54,22 @@ export default class Offeror extends BaseEntity {
   @OneToMany((_type) => Request, (request) => request.offeror)
   requests: Request[];
 
-  @OneToMany((_type) => OfferorImage, (offerorImage) => offerorImage.offeror, {
+  @OneToMany((_type) => Image, (offerorImage) => offerorImage.offeror, {
     eager: true,
   })
-  images: OfferorImage[];
+  images: Image[];
 
-  @OneToMany((_type) => OfferorEvent, (offerorEvent) => offerorEvent.offeror, {
+  @OneToMany((_type) => Event, (offerorEvent) => offerorEvent.offeror, {
     eager: true,
   })
-  events: OfferorEvent[];
+  events: Event[];
+
+  @OneToMany(
+    (_type) => ServiceToOfferor,
+    (offerorServiceProduct) => offerorServiceProduct.offeror,
+    {
+      eager: true,
+    },
+  )
+  servicesProducts: ServiceToOfferor[];
 }
