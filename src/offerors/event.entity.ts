@@ -2,10 +2,10 @@ import BaseEntity from 'src/base.entity';
 import { Column, Entity, ManyToOne, OneToMany } from 'typeorm';
 import Offeror from './offeror.entity';
 import Image from './image.entity';
-import { ServiceToOfferor } from './service-to-offeror';
+import ServiceToOfferor from './service-to-offeror';
 
 @Entity('events')
-export class Event extends BaseEntity {
+export default class Event extends BaseEntity {
   @Column({ type: 'text' })
   name: string;
 

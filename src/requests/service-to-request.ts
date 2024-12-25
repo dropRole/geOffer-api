@@ -1,10 +1,10 @@
 import BaseEntity from 'src/base.entity';
 import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
 import Request from './request.entity';
-import { ServiceToOfferor } from 'src/offerors/service-to-offeror';
+import ServiceToOfferor from 'src/offerors/service-to-offeror';
 
 @Entity('requestsOfferorsServicesProducts')
-export class ServiceToRequest extends BaseEntity {
+export default class ServiceToRequest extends BaseEntity {
   @Column({ type: 'smallint' })
   amount: number;
 
