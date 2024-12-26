@@ -7,7 +7,7 @@ import ServiceToRequest from 'src/requests/service-to-request';
 
 @Entity('offerorsServicesProducts')
 export default class ServiceToOfferor extends BaseEntity {
-  @Column({ type: 'numeric' })
+  @Column({ type: 'numeric', scale: 6, precision: 2 })
   price: number;
 
   @ManyToOne((_type) => Offeror, (offeror) => offeror.servicesProducts, {
