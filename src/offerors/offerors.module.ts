@@ -4,9 +4,9 @@ import { OfferorsService } from './offerors.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import Offeror from './offeror.entity';
 import Image from './image.entity';
-import { Event } from './event.entity';
-import { ServiceProduct } from './service-product.entity';
-import { ServiceToOfferor } from './service-to-offeror';
+import Event from './event.entity';
+import ServiceProduct from './service-product.entity';
+import ServiceToOfferor from './service-to-offeror';
 
 @Module({
   imports: [
