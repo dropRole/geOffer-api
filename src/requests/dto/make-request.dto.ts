@@ -9,9 +9,6 @@ import {
 } from 'class-validator';
 
 export default class MakeRequestDTO {
-  @IsIn(['Dinning', 'Drinking', 'Ticket selling'])
-  service: string;
-
   @IsOptional()
   @IsString()
   note?: string;
@@ -21,5 +18,5 @@ export default class MakeRequestDTO {
   requestedFor: string;
 
   @IsUUID()
-  idOfferor: string;
+  idOfferorServiceProduct: string;
 }

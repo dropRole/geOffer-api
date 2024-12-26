@@ -1,6 +1,6 @@
 import { IsJSON } from 'class-validator';
 
-export class AmendServiceDTO {
+export class DeleteEventsDTO {
   @IsJSON()
-  service: string;
+  eventIds: string;
 }

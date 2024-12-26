@@ -8,12 +8,15 @@ import {
 } from 'class-validator';
 
 export default class AmendBusinessInfoDTO {
+  @IsString()
   @IsNotEmpty()
-  @MaxLength(100)
   name: string;
 
   @IsJSON()
   address: string;
+
+  @IsJSON()
+  coordinates: string;
 
   @IsNotEmpty()
   @MaxLength(15)
@@ -22,9 +25,6 @@ export default class AmendBusinessInfoDTO {
   @IsEmail()
   @MaxLength(254)
   email: string;
-
-  @IsJSON()
-  service: string;
 
   @IsJSON()
   businessHours?: string;

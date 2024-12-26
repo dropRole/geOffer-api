@@ -16,7 +16,7 @@ import Complaint from 'src/complaints/complaint.entity';
 @Entity('incidents')
 @Index(['openedBy', 'reservation'])
 export default class Incident extends BaseEntity {
-  @Column({ type: 'varchar', length: 100 })
+  @Column({ type: 'text' })
   title: string;
 
   @Check("status IN('PENDING', 'RESOLVED', 'REJECTED')")

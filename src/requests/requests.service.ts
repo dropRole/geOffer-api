@@ -40,21 +40,15 @@ export class RequestsService extends BaseService<Request> {
     user: User,
     makeRequestDTO: MakeRequestDTO,
   ): Promise<{ id: string }> {
-    const { service, note, requestedFor, idOfferor } = makeRequestDTO;
-
-    const offeror: Offeror = await this.offerorsService.obtainOneBy({
-      id: idOfferor,
-    });
+    const { note, requestedFor, idOfferorServiceProduct } = makeRequestDTO;
 
     const offeree: Offeree = await this.offereesService.obtainOneBy({
       user: { username: user.username },
     });
 
     const request: Request = this.repo.create({
-      service: JSON.parse(service),
       note,
       requestedFor,
-      offeror,
       offeree,
     });
 

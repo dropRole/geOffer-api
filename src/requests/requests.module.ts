@@ -3,13 +3,14 @@ import { RequestsController } from './requests.controller';
 import { RequestsService } from './requests.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import Request from './request.entity';
+import ServiceToRequest from './service-to-request';
+import { OffereesModule } from 'src/offerees/offerees.module';
 import { OfferorsModule } from 'src/offerors/offerors.module';
 import { ReservationsModule } from 'src/reservations/reservations.module';
-import { OffereesModule } from 'src/offerees/offerees.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Request]),
+    TypeOrmModule.forFeature([Request, ServiceToRequest]),
     forwardRef(() => OffereesModule),
     forwardRef(() => OfferorsModule),
     forwardRef(() => ReservationsModule),

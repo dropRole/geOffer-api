@@ -24,7 +24,7 @@ import AmendBusinessInfoDTO from './dto/amend-business-info.dto';
 import AlterReputationDTO from './dto/alter-reputation.dto';
 import Reservation from 'src/reservations/reservation.entity';
 import { ReservationsService } from 'src/reservations/reservations.service';
-import OfferorImage from './offeror-images.entity';
+import Image from './image.entity';
 import * as aws from 'aws-sdk';
 import { DeleteGalleryImagesDTO } from './dto/delete-gallery-images.dto';
 import * as path from 'path';
@@ -34,8 +34,8 @@ export class OfferorsService extends BaseService<Offeror> {
   constructor(
     @InjectRepository(Offeror)
     offerorsRepo: Repository<Offeror>,
-    @InjectRepository(OfferorImage)
-    private offerorImagesRepo: Repository<OfferorImage>,
+    @InjectRepository(Image)
+    private imagesRepo: Repository<Image>,
     private authService: AuthService,
     private dataSource: DataSource,
     @Inject(forwardRef(() => ReservationsService))
@@ -63,7 +63,6 @@ export class OfferorsService extends BaseService<Offeror> {
         coordinates,
         telephone,
         email,
-        service,
         businessHours,
         password,
       } = recordOfferorDTO;
@@ -82,7 +81,6 @@ export class OfferorsService extends BaseService<Offeror> {
         coordinates: JSON.parse(coordinates),
         telephone,
         email,
-        service: JSON.parse(service),
         businessHours: JSON.parse(businessHours),
         user,
         requests: [],
@@ -116,15 +114,14 @@ export class OfferorsService extends BaseService<Offeror> {
       let uploadResults = `The highlight image ${files.highlight[0].originalname} isn't of the image/* mimetype.`;
 
       if (files.highlight[0].mimetype.match(/image/g)) {
-        const offerorHighlightImage: OfferorImage =
-          this.offerorImagesRepo.create({
-            offeror,
-            type: 'HIGHLIGHT',
-            destination: `${process.env.AWS_S3_BUCKET_URL}/highlight/${files.highlight[0].originalname}`,
-          });
+        const offerorHighlightImage: Image = this.imagesRepo.create({
+          offeror,
+          type: 'HIGHLIGHT',
+          destination: `${process.env.AWS_S3_BUCKET_URL}/highlight/${files.highlight[0].originalname}`,
+        });
 
         try {
-          await this.offerorImagesRepo.insert(offerorHighlightImage);
+          await this.imagesRepo.insert(offerorHighlightImage);
 
           await s3
             .upload({
@@ -146,15 +143,14 @@ export class OfferorsService extends BaseService<Offeror> {
         let galleryImageUploadResult = `The gallery image ${galleryImage.originalname} isn't of image/* mimetype.`;
 
         if (galleryImage.mimetype.match(/image/g)) {
-          const offerorGalleryImage: OfferorImage =
-            this.offerorImagesRepo.create({
-              offeror,
-              type: 'GALLERY',
-              destination: `${process.env.AWS_S3_BUCKET_URL}/gallery/${galleryImage.originalname}`,
-            });
+          const offerorGalleryImage: Image = this.imagesRepo.create({
+            offeror,
+            type: 'GALLERY',
+            destination: `${process.env.AWS_S3_BUCKET_URL}/gallery/${galleryImage.originalname}`,
+          });
 
           try {
-            await this.offerorImagesRepo.insert(offerorGalleryImage);
+            await this.imagesRepo.insert(offerorGalleryImage);
 
             await s3
               .upload({
@@ -206,16 +202,14 @@ export class OfferorsService extends BaseService<Offeror> {
       let galleryImageUploadResult = `The gallery image ${galleryImage.originalname} isn't of image/* mimetype.`;
 
       if (galleryImage.mimetype.match(/image/g)) {
-        const offerorGalleryImage: OfferorImage = this.offerorImagesRepo.create(
-          {
-            offeror,
-            type: 'GALLERY',
-            destination: `${process.env.AWS_S3_BUCKET_URL}/gallery/${galleryImage.originalname}`,
-          },
-        );
+        const offerorGalleryImage: Image = this.imagesRepo.create({
+          offeror,
+          type: 'GALLERY',
+          destination: `${process.env.AWS_S3_BUCKET_URL}/gallery/${galleryImage.originalname}`,
+        });
 
         try {
-          await this.offerorImagesRepo.insert(offerorGalleryImage);
+          await this.imagesRepo.insert(offerorGalleryImage);
 
           await s3
             .upload({
@@ -305,18 +299,17 @@ export class OfferorsService extends BaseService<Offeror> {
   async claimBusinessInfo(
     user: User,
   ): Promise<
-    Omit<
+    Pick<
       Offeror,
-      | 'id'
+      | 'name'
+      | 'address'
       | 'coordinates'
-      | 'reputation'
-      | 'user'
-      | 'requests'
-      | 'images'
-      | 'events'
+      | 'telephone'
+      | 'email'
+      | 'businessHours'
     >
   > {
-    const { name, address, telephone, email, service, businessHours } =
+    const { name, address, coordinates, telephone, email, businessHours } =
       await this.obtainOneBy({
         user: { username: user.username },
       });
@@ -324,9 +317,9 @@ export class OfferorsService extends BaseService<Offeror> {
     return {
       name,
       address,
+      coordinates,
       telephone,
       email,
-      service,
       businessHours,
     };
   }
@@ -351,7 +344,7 @@ export class OfferorsService extends BaseService<Offeror> {
       user: { username: user.username },
     });
 
-    const { name, address, telephone, email, service, businessHours } =
+    const { name, address, coordinates, telephone, email, businessHours } =
       amendBusinessInfoDTO;
 
     try {
@@ -360,9 +353,9 @@ export class OfferorsService extends BaseService<Offeror> {
         {
           name,
           address: JSON.parse(address),
+          coordinates: JSON.parse(coordinates),
           telephone,
           email,
-          service: JSON.parse(service),
           businessHours: JSON.parse(businessHours),
         },
       );
@@ -377,13 +370,13 @@ export class OfferorsService extends BaseService<Offeror> {
       offeror.id,
       `{ name: ${offeror.name}, address: ${JSON.stringify(
         offeror.address,
-      )}, telephone: ${offeror.telephone}, email: ${offeror.email}, service: ${
-        offeror.service
-      }, businessHours: ${
+      )}, coordinates: ${offeror.coordinates}, 
+      telephone: ${offeror.telephone}, email: ${offeror.email}, 
+      businessHours: ${
         offeror.businessHours
       } } => { name: ${name}, address: ${JSON.stringify(
         offeror.address,
-      )}, telephone: ${telephone}, email: ${email}, service: ${service} , businessHours: ${businessHours} }`,
+      )}, telephone: ${telephone}, email: ${email}, coordinates: ${coordinates} , businessHours: ${businessHours} }`,
     );
   }
 
@@ -430,10 +423,10 @@ export class OfferorsService extends BaseService<Offeror> {
       secretAccessKey: process.env.AWS_S3_SECRET_ACCESS_KEY,
     });
 
-    let highlightImage: OfferorImage;
+    let highlightImage: Image;
 
     try {
-      highlightImage = await this.offerorImagesRepo.findOne({
+      highlightImage = await this.imagesRepo.findOne({
         where: { offeror: { id: offeror.id }, type: 'HIGHLIGHT' },
       });
     } catch (error) {
@@ -484,7 +477,7 @@ export class OfferorsService extends BaseService<Offeror> {
       changeResult = uploadResults;
 
       try {
-        await this.offerorImagesRepo.update(
+        await this.imagesRepo.update(
           { id: highlightImage.id },
           {
             destination: `${process.env.AWS_S3_BUCKET_URL}/highlight/${files.highlight[0].originalname}`,
@@ -515,7 +508,7 @@ export class OfferorsService extends BaseService<Offeror> {
     let deleteResults = '';
 
     for (const id of ids) {
-      const galleryImage: OfferorImage = await this.offerorImagesRepo.findOne({
+      const galleryImage: Image = await this.imagesRepo.findOne({
         where: { id },
       });
 
@@ -536,7 +529,7 @@ export class OfferorsService extends BaseService<Offeror> {
 
       if (objectDeleted) {
         try {
-          await this.offerorImagesRepo.delete({ id });
+          await this.imagesRepo.delete({ id });
 
           deleteResults += `The gallery image ${path.basename(
             galleryImage.destination,

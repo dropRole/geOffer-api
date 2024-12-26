@@ -10,8 +10,8 @@ import {
 } from 'class-validator';
 
 export default class RecordOfferorDTO {
+  @IsString()
   @IsNotEmpty()
-  @MaxLength(100)
   name: string;
 
   @IsJSON()
@@ -27,9 +27,6 @@ export default class RecordOfferorDTO {
   @IsEmail()
   @MaxLength(254)
   email: string;
-
-  @IsJSON()
-  service: string;
 
   @IsOptional()
   @IsString()
