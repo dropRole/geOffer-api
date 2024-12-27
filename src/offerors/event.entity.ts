@@ -26,7 +26,7 @@ export default class Event extends BaseEntity {
 
   @OneToMany(
     (_type) => ServiceToOfferor,
-    (offerorServiceProduct) => offerorServiceProduct.serviceProduct,
+    (offerorServiceProduct) => offerorServiceProduct.service,
     {
       eager: true,
     },
