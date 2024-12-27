@@ -3,12 +3,12 @@ import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
 import Request from './request.entity';
 import ServiceToOfferor from 'src/offerors/service-to-offeror';
 
-@Entity('requestsOfferorsServicesProducts')
+@Entity('requestsOfferorsServices')
 export default class ServiceToRequest extends BaseEntity {
   @Column({ type: 'smallint' })
   amount: number;
 
-  @ManyToOne((_type) => Request, (request) => request.servicesProducts, {
+  @ManyToOne((_type) => Request, (request) => request.services, {
     onDelete: 'RESTRICT',
   })
   @JoinColumn({ name: 'idRequest' })
@@ -21,6 +21,6 @@ export default class ServiceToRequest extends BaseEntity {
       onDelete: 'RESTRICT',
     },
   )
-  @JoinColumn({ name: 'idOfferorServiceProduct' })
+  @JoinColumn({ name: 'idOfferorService' })
   serviceToOfferor: ServiceToOfferor;
 }

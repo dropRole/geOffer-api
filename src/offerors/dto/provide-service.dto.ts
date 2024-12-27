@@ -7,12 +7,8 @@ import {
   IsUUID,
 } from 'class-validator';
 
-export class ProvideServiceProductDTO {
-  @IsString()
-  @IsNotEmpty()
-  serviceProduct: string;
-
-  @IsIn(['Dinning', 'Drink order', 'Ticket selling'])
+export class ProvideServiceDTO {
+  @IsIn(['Seat reservation', 'Ticket selling'])
   category: string;
 
   @IsString()
@@ -21,10 +17,6 @@ export class ProvideServiceProductDTO {
 
   @IsNumberString()
   price: number;
-
-  @IsOptional()
-  @IsUUID()
-  idServiceProduct: string;
 
   @IsOptional()
   @IsUUID()

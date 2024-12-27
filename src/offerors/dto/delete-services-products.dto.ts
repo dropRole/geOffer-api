@@ -1,6 +1,6 @@
 import { IsJSON } from 'class-validator';
 
-export class DeleteServicesProductsDTO {
+export class DeleteServicesDTO {
   @IsJSON()
-  serviceProductIds: string;
+  serviceIds: string;
 }

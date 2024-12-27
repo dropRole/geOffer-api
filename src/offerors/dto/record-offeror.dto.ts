@@ -7,12 +7,16 @@ import {
   IsString,
   MinLength,
   Matches,
+  IsIn,
 } from 'class-validator';
 
 export default class RecordOfferorDTO {
   @IsString()
   @IsNotEmpty()
   name: string;
+
+  @IsIn(['Restaurant', 'Café/ Pub', 'Movie Theater'])
+  category: string;
 
   @IsJSON()
   address: string;

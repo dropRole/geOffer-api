@@ -5,7 +5,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import Offeror from './offeror.entity';
 import Image from './image.entity';
 import Event from './event.entity';
-import ServiceProduct from './service-product.entity';
+import Service from './service.entity';
 import ServiceToOfferor from './service-to-offeror';
 import { AuthModule } from 'src/auth/auth.module';
 import { ReservationsModule } from 'src/reservations/reservations.module';
@@ -16,7 +16,7 @@ import { ReservationsModule } from 'src/reservations/reservations.module';
       Offeror,
       Image,
       Event,
-      ServiceProduct,
+      Service,
       ServiceToOfferor,
     ]),
     AuthModule,
