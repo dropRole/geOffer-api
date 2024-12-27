@@ -9,7 +9,7 @@ import {
 import BaseEntity from 'src/base.entity';
 import Offeree from 'src/offerees/offeree.entity';
 import Offeror from 'src/offerors/offeror.entity';
-import ServiceToRequest from './service-to-request';
+import ServiceToRequest from './service-to-request.entity';
 
 @Entity('requests')
 @Index(['offeree', 'offeror'])
@@ -46,5 +46,5 @@ export default class Request extends BaseEntity {
     (_type) => ServiceToRequest,
     (serviceToRequest) => serviceToRequest.request,
   )
-  servicesProducts: ServiceToRequest[];
+  services: ServiceToRequest[];
 }

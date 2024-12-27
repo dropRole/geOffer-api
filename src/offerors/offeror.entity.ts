@@ -1,8 +1,16 @@
-import { Entity, Column, OneToOne, JoinColumn, OneToMany } from 'typeorm';
+import {
+  Entity,
+  Column,
+  OneToOne,
+  JoinColumn,
+  OneToMany,
+  Check,
+} from 'typeorm';
 import BaseEntity from 'src/base.entity';
 import {
   OfferorAddress,
   OfferorBusinessHours,
+  OfferorCategory,
   OfferorCoordinates,
   OfferorReputation,
 } from './types';
@@ -16,6 +24,10 @@ import ServiceToOfferor from './service-to-offeror';
 export default class Offeror extends BaseEntity {
   @Column({ type: 'text' })
   name: string;
+
+  @Check("category IN('Restaurant', 'Café/Pub', 'Movie Theater')")
+  @Column({ type: 'varchar', length: 13 })
+  category: OfferorCategory;
 
   @Column({ type: 'jsonb' })
   address: OfferorAddress;
@@ -66,10 +78,10 @@ export default class Offeror extends BaseEntity {
 
   @OneToMany(
     (_type) => ServiceToOfferor,
-    (offerorServiceProduct) => offerorServiceProduct.offeror,
+    (offerorService) => offerorService.offeror,
     {
       eager: true,
     },
   )
-  servicesProducts: ServiceToOfferor[];
+  services: ServiceToOfferor[];
 }
