@@ -15,9 +15,9 @@ type OfferorCoordinates = {
   longitude: number;
 };
 
-type OfferorServiceCategory = 'Restaurant' | 'Café/Pub' | 'Movie Theater';
+type OfferorCategory = 'Restaurant' | 'Café/Pub' | 'Movie Theater';
 
-type OfferorServiceSubcategory = 'Dinning' | 'Drink order' | 'Ticket selling';
+type OfferorServiceCategory = 'Seat reservation' | 'Ticket selling';
 
 type OfferorBusinessHours = {
   [key in
@@ -41,8 +41,8 @@ type OfferorImageType = 'HIGHLIGHT' | 'GALLERY';
 export {
   OfferorAddress,
   OfferorCoordinates,
+  OfferorCategory,
   OfferorServiceCategory,
-  OfferorServiceSubcategory,
   OfferorBusinessHours,
   OfferorReputation,
   OfferorImageType,

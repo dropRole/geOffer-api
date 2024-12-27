@@ -1,30 +1,26 @@
 import BaseEntity from 'src/base.entity';
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
 import Offeror from './offeror.entity';
-import ServiceProduct from './service-product.entity';
+import Service from './service.entity';
 import Event from './event.entity';
-import ServiceToRequest from 'src/requests/service-to-request';
+import ServiceToRequest from 'src/requests/service-to-request.entity';
 
-@Entity('offerorsServicesProducts')
+@Entity('offerorsServices')
 export default class ServiceToOfferor extends BaseEntity {
   @Column({ type: 'numeric', scale: 6, precision: 2 })
   price: number;
 
-  @ManyToOne((_type) => Offeror, (offeror) => offeror.servicesProducts, {
+  @ManyToOne((_type) => Offeror, (offeror) => offeror.services, {
     onDelete: 'RESTRICT',
   })
   @JoinColumn({ name: 'idOfferor' })
   offeror: Offeror;
 
-  @ManyToOne(
-    (_type) => ServiceProduct,
-    (serviceProduct) => serviceProduct.offerors,
-    {
-      onDelete: 'RESTRICT',
-    },
-  )
-  @JoinColumn({ name: 'idServiceProduct' })
-  serviceProduct: ServiceProduct;
+  @ManyToOne((_type) => Service, (service) => service.offerors, {
+    onDelete: 'RESTRICT',
+  })
+  @JoinColumn({ name: 'idService' })
+  service: Service;
 
   @ManyToOne((_type) => Event, (event) => event.servicesProducts, {
     onDelete: 'RESTRICT',
