@@ -6,7 +6,7 @@ import Offeror from './offeror.entity';
 import Image from './image.entity';
 import Event from './event.entity';
 import Service from './service.entity';
-import ServiceToOfferor from './service-to-offeror';
+import ServiceToOfferor from './service-to-offeror.entity';
 import { AuthModule } from 'src/auth/auth.module';
 import { ReservationsModule } from 'src/reservations/reservations.module';
 import { RequestsModule } from 'src/requests/requests.module';

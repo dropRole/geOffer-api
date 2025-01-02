@@ -12,6 +12,10 @@ const EnvConfigValidationSchema: Joi.ObjectSchema = Joi.object({
   JWT_SECRET: Joi.string().required(),
   JWT_EXPIRE: Joi.number().required(),
   LOCATIONIQ_API_KEY: Joi.string().required(),
+  AWS_S3_ACCESS_KEY: Joi.string().required(),
+  AWS_S3_SECRET_ACCESS_KEY: Joi.string().required(),
+  AWS_S3_BUCKET: Joi.string().required(),
+  AWS_S3_BUCKET_URL: Joi.string().required(),
 });
 
 export default EnvConfigValidationSchema;

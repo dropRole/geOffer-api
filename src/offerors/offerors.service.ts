@@ -42,7 +42,7 @@ import * as path from 'path';
 import { ProvideServiceDTO } from './dto/provide-service.dto';
 import Service from './service.entity';
 import Event from './event.entity';
-import ServiceToOfferor from './service-to-offeror';
+import ServiceToOfferor from './service-to-offeror.entity';
 import { AddEventDTO } from './dto/add-event.dto';
 import { AlterServiceInfoDTO } from './dto/alter-service-info.dto';
 import { DeleteServicesDTO } from './dto/delete-services-products.dto';
@@ -281,7 +281,7 @@ export class OfferorsService extends BaseService<Offeror> {
 
   async addGalleryImages(
     user: User,
-    images: { gallery: Express.Multer.File[] },
+    images: Express.Multer.File[],
   ): Promise<{ uploadResults: string }> {
     const offeror = await this.obtainOneBy({
       user: { username: user.username },
@@ -289,7 +289,7 @@ export class OfferorsService extends BaseService<Offeror> {
 
     let uploadResults = '';
 
-    for (const galleryImage of images.gallery) {
+    for (const galleryImage of images) {
       const isImageMimeType = galleryImage.mimetype.match(/image/g);
 
       if (!isImageMimeType) {
@@ -357,7 +357,7 @@ export class OfferorsService extends BaseService<Offeror> {
     user: User,
     image: Express.Multer.File,
     addEventDTO: AddEventDTO,
-  ): Promise<{ id: string; uploadResults: string }> {
+  ): Promise<{ id: string; uploadResult: string }> {
     const offeror: Offeror = await this.obtainOneBy({
       user: { username: user.username },
     });
@@ -396,7 +396,7 @@ export class OfferorsService extends BaseService<Offeror> {
     try {
       await this.S3Client.send(putCommand);
     } catch (error) {
-      return { id: event.id, uploadResults: error.message };
+      return { id: event.id, uploadResult: error.message };
     }
 
     const eventImage: Image = this.imagesRepo.create({
@@ -420,7 +420,7 @@ export class OfferorsService extends BaseService<Offeror> {
 
       return {
         id: event.id,
-        uploadResults: `Error during the event image insertion: ${error.message}.`,
+        uploadResult: `Error during the event image insertion: ${error.message}.`,
       };
     }
 
@@ -428,7 +428,7 @@ export class OfferorsService extends BaseService<Offeror> {
 
     return {
       id: event.id,
-      uploadResults: `The event image ${image.originalname} successfully uploaded.`,
+      uploadResult: `The event image ${image.originalname} successfully uploaded.`,
     };
   }
 

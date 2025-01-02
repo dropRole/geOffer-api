@@ -1,7 +1,7 @@
 import BaseEntity from 'src/base.entity';
 import { Check, Column, Entity, OneToMany } from 'typeorm';
 import { OfferorServiceCategory } from './types';
-import ServiceToOfferor from './service-to-offeror';
+import ServiceToOfferor from './service-to-offeror.entity';
 
 @Entity('services')
 export default class Service extends BaseEntity {

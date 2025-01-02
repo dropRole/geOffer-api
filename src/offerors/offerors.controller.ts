@@ -26,6 +26,7 @@ import User from 'src/auth/user.entity';
 import {
   FileFieldsInterceptor,
   FileInterceptor,
+  FilesInterceptor,
 } from '@nestjs/platform-express';
 import { DeleteGalleryImagesDTO } from './dto/delete-gallery-images.dto';
 import { AddEventDTO } from './dto/add-event.dto';
@@ -33,7 +34,7 @@ import { DeleteEventsDTO } from './dto/delete-events.dto';
 import { ProvideServiceDTO } from './dto/provide-service.dto';
 import { AlterServiceInfoDTO } from './dto/alter-service-info.dto';
 import { DeleteServicesDTO } from './dto/delete-services-products.dto';
-import { AmendEventInfoDTO } from './dto/amend-event-info.dto';
+import { AmendEventInfoDTO } from './dto/amend-event.info.dto';
 
 @Controller('offerors')
 export class OfferorsController {
@@ -66,13 +67,11 @@ export class OfferorsController {
 
   @Post('/images/gallery')
   @PrivilegedRoute('OFFEROR')
-  @UseInterceptors(FileFieldsInterceptor([{ name: 'gallery', maxCount: 10 }]))
+  @UseInterceptors(FilesInterceptor('gallery', 10))
   addGalleryImages(
     @ExtractUser() user: User,
     @UploadedFiles()
-    images: {
-      gallery: Express.Multer.File[];
-    },
+    images: Express.Multer.File[],
   ): Promise<{ uploadResults: string }> {
     return this.offerorsService.addGalleryImages(user, images);
   }
@@ -89,7 +88,7 @@ export class OfferorsController {
     )
     image: Express.Multer.File,
     @Body() addEventDTO: AddEventDTO,
-  ): Promise<{ id: string; uploadResults: string }> {
+  ): Promise<{ id: string; uploadResult: string }> {
     return this.offerorsService.addEvent(user, image, addEventDTO);
   }
 

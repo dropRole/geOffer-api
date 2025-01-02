@@ -22,7 +22,7 @@ export default class ServiceToOfferor extends BaseEntity {
   @JoinColumn({ name: 'idService' })
   service: Service;
 
-  @ManyToOne((_type) => Event, (event) => event.servicesProducts, {
+  @ManyToOne((_type) => Event, (event) => event.services, {
     onDelete: 'RESTRICT',
     nullable: true,
   })
