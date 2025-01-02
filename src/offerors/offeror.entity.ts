@@ -18,7 +18,7 @@ import User from 'src/auth/user.entity';
 import Request from 'src/requests/request.entity';
 import Image from './image.entity';
 import Event from './event.entity';
-import ServiceToOfferor from './service-to-offeror';
+import ServiceToOfferor from './service-to-offeror.entity';
 
 @Entity('offerors')
 export default class Offeror extends BaseEntity {

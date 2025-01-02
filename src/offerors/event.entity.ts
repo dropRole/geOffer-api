@@ -2,7 +2,7 @@ import BaseEntity from 'src/base.entity';
 import { Column, Entity, ManyToOne, OneToMany } from 'typeorm';
 import Offeror from './offeror.entity';
 import Image from './image.entity';
-import ServiceToOfferor from './service-to-offeror';
+import ServiceToOfferor from './service-to-offeror.entity';
 
 @Entity('events')
 export default class Event extends BaseEntity {
@@ -31,5 +31,5 @@ export default class Event extends BaseEntity {
       eager: true,
     },
   )
-  servicesProducts: ServiceToOfferor[];
+  services: ServiceToOfferor[];
 }
