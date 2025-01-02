@@ -11,8 +11,8 @@ export class ProvideServiceDTO {
   @IsIn(['Seat reservation', 'Ticket selling'])
   category: string;
 
+  @IsOptional()
   @IsString()
-  @IsNotEmpty()
   detailed: string;
 
   @IsNumberString()

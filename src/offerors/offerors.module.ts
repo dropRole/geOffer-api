@@ -9,6 +9,7 @@ import Service from './service.entity';
 import ServiceToOfferor from './service-to-offeror';
 import { AuthModule } from 'src/auth/auth.module';
 import { ReservationsModule } from 'src/reservations/reservations.module';
+import { RequestsModule } from 'src/requests/requests.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { ReservationsModule } from 'src/reservations/reservations.module';
     ]),
     AuthModule,
     ReservationsModule,
+    forwardRef(() => RequestsModule),
   ],
   controllers: [OfferorsController],
   providers: [OfferorsService],

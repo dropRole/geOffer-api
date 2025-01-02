@@ -96,7 +96,7 @@ export class AuthService extends BaseService<User> {
   async login(loginDTO: LoginDTO): Promise<Token> {
     const { username, password } = loginDTO;
 
-    const user: User = await this.obtainOneBy({ username });
+    const user: User = await this.repo.findOneBy({ username });
 
     if (user && (await bcrypt.compare(password, user.password)))
       return await this.signToken(username);

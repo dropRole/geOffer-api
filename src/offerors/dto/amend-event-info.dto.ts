@@ -7,15 +7,16 @@ import {
   MaxLength,
 } from 'class-validator';
 
-export class AddEventDTO {
+export class AmendEventInfoDTO {
+  @IsOptional()
   @IsString()
-  @IsNotEmpty()
   name: string;
 
+  @IsOptional()
   @IsString()
-  @IsNotEmpty()
   detailed: string;
 
+  @IsOptional()
   @IsDateString()
   beginning: string;
 

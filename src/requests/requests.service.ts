@@ -20,12 +20,15 @@ import { ReservationsService } from 'src/reservations/reservations.service';
 import Offeree from 'src/offerees/offeree.entity';
 import { OffereesService } from 'src/offerees/offerees.service';
 import Reservation from 'src/reservations/reservation.entity';
+import ServiceToRequest from './service-to-request.entity';
 
 @Injectable()
 export class RequestsService extends BaseService<Request> {
   constructor(
     @InjectRepository(Request)
     requestsRepo: Repository<Request>,
+    @InjectRepository(ServiceToRequest)
+    private requestServicesRepo: Repository<ServiceToRequest>,
     @Inject(forwardRef(() => OffereesService))
     private offereesService: OffereesService,
     @Inject(forwardRef(() => OfferorsService))
@@ -184,5 +187,17 @@ export class RequestsService extends BaseService<Request> {
       throw new ConflictException(
         `Cannot delete ${id} request due to already reserved.`,
       );
+  }
+
+  async revokeRequestsForService(idOfferorService: string): Promise<void> {
+    try {
+      await this.requestServicesRepo.delete({
+        serviceToOfferor: { id: idOfferorService },
+      });
+    } catch (error) {
+      throw new InternalServerErrorException(
+        `Error during the requests services deletion: ${error.message}`,
+      );
+    }
   }
 }
