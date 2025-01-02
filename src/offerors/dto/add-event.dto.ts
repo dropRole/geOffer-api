@@ -22,7 +22,4 @@ export class AddEventDTO {
   @IsOptional()
   @IsDateString()
   conclusion: string;
-
-  @IsUUID()
-  idOfferor: string;
 }
