@@ -7,7 +7,7 @@ import ServiceToRequest from 'src/requests/service-to-request.entity';
 
 @Entity('offerorsServices')
 export default class ServiceToOfferor extends BaseEntity {
-  @Column({ type: 'numeric', scale: 6, precision: 2 })
+  @Column({ type: 'numeric', precision: 6, scale: 2 })
   price: number;
 
   @ManyToOne((_type) => Offeror, (offeror) => offeror.services, {
@@ -22,7 +22,7 @@ export default class ServiceToOfferor extends BaseEntity {
   @JoinColumn({ name: 'idService' })
   service: Service;
 
-  @ManyToOne((_type) => Event, (event) => event.servicesProducts, {
+  @ManyToOne((_type) => Event, (event) => event.services, {
     onDelete: 'RESTRICT',
     nullable: true,
   })
