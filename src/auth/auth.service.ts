@@ -36,10 +36,10 @@ export class AuthService extends BaseService<User> {
     let user: User;
 
     try {
-      user = await this.repo.findOne({ where: { username } });
+      user = await this.repo.findOneBy({ username });
     } catch (error) {
       throw new InternalServerErrorException(
-        `Error during the username existence check: ${error.message}`,
+        `Error during the username existence check: ${error.message}.`,
       );
     }
 
@@ -61,10 +61,10 @@ export class AuthService extends BaseService<User> {
 
     const queryRunner: QueryRunner = this.dataSource.createQueryRunner();
 
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
-
     try {
+      await queryRunner.connect();
+      await queryRunner.startTransaction();
+
       await queryRunner.manager.insert(User, user);
       await queryRunner.manager.insert(Offeree, offeree);
 
@@ -73,7 +73,7 @@ export class AuthService extends BaseService<User> {
       await queryRunner.rollbackTransaction();
 
       throw new InternalServerErrorException(
-        `Error during the user and offeree insertion transaction: ${error.message}`,
+        `Error during the user and offeree insertion transaction: ${error.message}.`,
       );
     }
 
@@ -82,6 +82,8 @@ export class AuthService extends BaseService<User> {
   }
 
   async signToken(username: string): Promise<Token> {
+    await this.obtainOneBy({ username });
+
     const payload: JwtPayload = { username };
 
     const token: string = await this.jwtService.signAsync(payload);
@@ -110,7 +112,7 @@ export class AuthService extends BaseService<User> {
   ): Promise<Token> {
     const { username } = alterUsernameDTO;
 
-    const inUse: User = await this.obtainOneBy({ username });
+    const inUse: User = await this.repo.findOneBy({ username });
 
     if (inUse)
       throw new ConflictException(`Username ${username} is already in use.`);
@@ -119,7 +121,7 @@ export class AuthService extends BaseService<User> {
       await this.repo.update({ username: user.username }, { username });
     } catch (error) {
       throw new InternalServerErrorException(
-        `Error during the username update: ${error.message}`,
+        `Error during the username update: ${error.message}.`,
       );
     }
 
@@ -147,7 +149,7 @@ export class AuthService extends BaseService<User> {
       await this.repo.update({ username: user.username }, { password: hash });
     } catch (error) {
       throw new InternalServerErrorException(
-        `Error during the password update: ${error.message}`,
+        `Error during the password update: ${error.message}.`,
       );
     }
 
