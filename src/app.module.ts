@@ -10,7 +10,7 @@ import { ProhibitionsModule } from './prohibitions/prohibitions.module';
 import { LocationiqModule } from './locationiq/locationiq.module';
 import { DataLoggerModule } from './data-logger/data-logger.module';
 import { ConfigModule } from '@nestjs/config';
-import { EnvConfig } from './config';
+import EnvConfig from './config/env.config';
 
 @Module({
   imports: [
