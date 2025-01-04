@@ -1,15 +1,8 @@
-import { ConfigModuleOptions } from '@nestjs/config';
-import EnvConfigValidationSchema from './env-validation.schema';
 import {
   TypeOrmModuleAsyncOptions,
   TypeOrmModuleOptions,
 } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-
-const EnvConfig: ConfigModuleOptions = {
-  validationSchema: EnvConfigValidationSchema,
-  envFilePath: `.env.stage.${process.env.STAGE}`,
-};
 
 const OrmAsyncConfig: TypeOrmModuleAsyncOptions = {
   imports: [ConfigModule],
@@ -28,4 +21,4 @@ const OrmAsyncConfig: TypeOrmModuleAsyncOptions = {
   }),
 };
 
-export { EnvConfig, OrmAsyncConfig };
+export default OrmAsyncConfig;

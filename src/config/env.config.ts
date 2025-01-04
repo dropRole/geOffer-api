@@ -1,3 +1,4 @@
+import { ConfigModuleOptions } from '@nestjs/config';
 import * as Joi from 'joi';
 
 const EnvConfigValidationSchema: Joi.ObjectSchema = Joi.object({
@@ -20,4 +21,9 @@ const EnvConfigValidationSchema: Joi.ObjectSchema = Joi.object({
   AWS_S3_BUCKET_URL: Joi.string().required(),
 });
 
-export default EnvConfigValidationSchema;
+const EnvConfig: ConfigModuleOptions = {
+  validationSchema: EnvConfigValidationSchema,
+  envFilePath: `.env.stage.${process.env.STAGE}`,
+};
+
+export default EnvConfig;
