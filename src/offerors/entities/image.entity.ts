@@ -1,8 +1,9 @@
-import BaseEntity from 'src/base.entity';
+import BaseEntity from 'src/common/entities/base.entity';
 import { Check, Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
-import { OfferorImageType } from './types';
 import Offeror from './offeror.entity';
 import Event from './event.entity';
+
+type ImageType = 'HIGHLIGHT' | 'GALLERY';
 
 @Entity('images')
 export default class Image extends BaseEntity {
@@ -11,7 +12,7 @@ export default class Image extends BaseEntity {
 
   @Column({ type: 'varchar', length: 9 })
   @Check("type IN('HIGHLIGHT', 'GALLERY')")
-  type: OfferorImageType;
+  type: ImageType;
 
   @ManyToOne((_type) => Offeror, (offeror) => offeror.images, {
     onDelete: 'RESTRICT',

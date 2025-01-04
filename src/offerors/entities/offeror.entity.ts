@@ -6,19 +6,48 @@ import {
   OneToMany,
   Check,
 } from 'typeorm';
-import BaseEntity from 'src/base.entity';
-import {
-  OfferorAddress,
-  OfferorBusinessHours,
-  OfferorCategory,
-  OfferorCoordinates,
-  OfferorReputation,
-} from './types';
-import User from 'src/auth/user.entity';
-import Request from 'src/requests/request.entity';
+import BaseEntity from 'src/common/entities/base.entity';
+import User from 'src/auth/entities/user.entity';
+import Request from 'src/requests/entities/request.entity';
 import Image from './image.entity';
 import Event from './event.entity';
 import ServiceToOfferor from './service-to-offeror.entity';
+
+type OfferorAddress = {
+  street: {
+    name: string;
+    numeration: string;
+  };
+  city: {
+    name: string;
+    postalCode: string;
+  };
+  country?: string;
+};
+
+type OfferorCoordinates = {
+  latitude: number;
+  longitude: number;
+};
+
+type OfferorCategory = 'Restaurant' | 'Café/Pub' | 'Movie Theater';
+
+type OfferorBusinessHours = {
+  [key in
+    | 'Monday'
+    | 'Tuesday'
+    | 'Wednesday'
+    | 'Thursday'
+    | 'Friday'
+    | 'Saturday'
+    | 'Sunday']: { from: string; to: string };
+};
+
+type OfferorReputation = {
+  responsiveness: number;
+  compliance: number;
+  timeliness: number;
+};
 
 @Entity('offerors')
 export default class Offeror extends BaseEntity {

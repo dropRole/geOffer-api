@@ -1,5 +1,5 @@
 import { SetMetadata } from '@nestjs/common';
-import { UserPrivilege } from './types';
+import UserPrivilege from './entities/user.entity';
 
 const IsPrivileged = 'IsPrivileged';
 

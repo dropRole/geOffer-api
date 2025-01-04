@@ -1,7 +1,7 @@
-import BaseEntity from 'src/base.entity';
+import BaseEntity from 'src/common/entities/base.entity';
 import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
 import Request from './request.entity';
-import ServiceToOfferor from 'src/offerors/service-to-offeror.entity';
+import ServiceToOfferor from 'src/offerors/entities/service-to-offeror.entity';
 
 @Entity('requestsOfferorsServices')
 export default class ServiceToRequest extends BaseEntity {

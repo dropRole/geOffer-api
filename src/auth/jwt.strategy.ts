@@ -2,10 +2,13 @@ import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { InjectRepository } from '@nestjs/typeorm';
-import User from './user.entity';
+import User from './entities/user.entity';
 import { Repository } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
-import { JwtPayload } from './types';
+
+type JwtPayload = {
+  username: string;
+};
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
