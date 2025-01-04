@@ -14,8 +14,8 @@ import EnvConfig from './config/env.config';
 import OrmAsyncConfig from './config/orm.config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { APP_GUARD } from '@nestjs/core';
-import { JwtGuard } from './auth/jwt.guard';
-import { PrivilegeGuard } from './auth/privilege.guard';
+import { JwtGuard } from './common/guards/jwt.guard';
+import { PrivilegeGuard } from './common/guards/privilege.guard';
 
 @Module({
   imports: [
