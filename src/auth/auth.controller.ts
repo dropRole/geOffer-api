@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   UseGuards,
+  Res,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import SignupDTO from './dto/signup.dto';
@@ -17,6 +18,7 @@ import CurrentUser from './current-user.decorator';
 import AlterUsernameDTO from './dto/alter-username.dto';
 import AlterPasswordDTO from './dto/alter-password.dto';
 import JwtRefreshGuard from 'src/common/guards/jwt-refresh.guard';
+import { Response } from 'express';
 
 @Controller('auth')
 export class AuthController {
@@ -30,14 +32,20 @@ export class AuthController {
 
   @Post('/login')
   @PublicRoute()
-  login(@Body() loginDTO: LoginDTO): Promise<void> {
+  login(
+    @Body() loginDTO: LoginDTO,
+    @Res({ passthrough: true }) response: Response,
+  ): Promise<void> {
     return;
   }
 
   @Post('/refresh-token')
   @UseGuards(JwtRefreshGuard)
   @PublicRoute()
-  refreshToken(@CurrentUser() user: User): Promise<void> {
+  refreshToken(
+    @CurrentUser() user: User,
+    @Res({ passthrough: true }) response: Response,
+  ): Promise<void> {
     return;
   }
 
@@ -58,6 +66,7 @@ export class AuthController {
   alterUsername(
     @CurrentUser() user: User,
     @Body() alterUsernameDTO: AlterUsernameDTO,
+    @Res({ passthrough: true }) response: Response,
   ): Promise<void> {
     return;
   }
