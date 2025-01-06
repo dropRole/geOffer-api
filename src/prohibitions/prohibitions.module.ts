@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { ProhibitionsController } from './prohibitions.controller';
 import { ProhibitionsService } from './prohibitions.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import Prohibition from './prohibition.entity';
+import Prohibition from './entities/prohibition.entity';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Prohibition])],

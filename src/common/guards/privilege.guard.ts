@@ -1,7 +1,7 @@
 import { Injectable, ExecutionContext, CanActivate } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { IsPrivileged } from './privileged-route.decorator';
-import { UserPrivilege } from './types';
+import { IsPrivileged } from '../decorators/privileged-route.decorator';
+import UserPrivilege from '../../auth/entities/user.entity';
 
 @Injectable()
 export class PrivilegeGuard implements CanActivate {

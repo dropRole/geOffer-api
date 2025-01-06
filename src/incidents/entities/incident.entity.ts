@@ -7,11 +7,12 @@ import {
   JoinColumn,
   OneToMany,
 } from 'typeorm';
-import BaseEntity from 'src/base.entity';
-import IncidentStatus from './types';
-import User from 'src/auth/user.entity';
-import Reservation from 'src/reservations/reservation.entity';
-import Complaint from 'src/complaints/complaint.entity';
+import BaseEntity from 'src/common/entities/base.entity';
+import User from 'src/auth/entities/user.entity';
+import Reservation from 'src/reservations/entities/reservation.entity';
+import Complaint from 'src/complaints/entities/complaint.entity';
+
+type IncidentStatus = 'PENDING' | 'RESOLVED' | 'REJECTED';
 
 @Entity('incidents')
 @Index(['openedBy', 'reservation'])

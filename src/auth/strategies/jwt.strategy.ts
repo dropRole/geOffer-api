@@ -1,11 +1,15 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
+import { Request } from 'express';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { InjectRepository } from '@nestjs/typeorm';
-import User from './user.entity';
+import User from '../entities/user.entity';
 import { Repository } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
-import { JwtPayload } from './types';
+
+export type JwtPayload = {
+  username: string;
+};
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -15,8 +19,10 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     private configService: ConfigService,
   ) {
     super({
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-      secretOrKey: configService.get('JWT_SECRET'),
+      jwtFromRequest: ExtractJwt.fromExtractors([
+        (request: Request) => request.cookies?.JWT,
+      ]),
+      secretOrKey: configService.getOrThrow('JWT_SECRET'),
       ignoreExpiration: false,
     });
   }
@@ -27,10 +33,10 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     let user: User;
 
     try {
-      user = await this.usersRepo.findOne({ where: { username } });
+      user = await this.usersRepo.findOneBy({ username });
     } catch (error) {
       throw new InternalServerErrorException(
-        `Error during JWT validation: ${error.message}`,
+        `Error during the JWT validation: ${error.message}.`,
       );
     }
 
