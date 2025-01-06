@@ -9,11 +9,11 @@ import {
   Delete,
 } from '@nestjs/common';
 import { RequestsService } from './requests.service';
-import { PrivilegedRoute } from 'src/auth/privileged-route.decorator';
-import ExtractUser from 'src/auth/extract-user.decorator';
-import User from 'src/auth/user.entity';
+import { PrivilegedRoute } from '../common/decorators/privileged-route.decorator';
+import CurrentUser from 'src/auth/current-user.decorator';
+import { User } from '../auth/entities/user.entity';
 import MakeRequestDTO from './dto/make-request.dto';
-import Request from './request.entity';
+import Request from './entities/request.entity';
 import ObtainRequestsDTO from './dto/obtain-requests.dto';
 import AmendRequestProvisionsDTO from './dto/amend-request-provisions.dto';
 import AssessReservationTimeDTO from './dto/assess-reservation-time.dto';
@@ -25,7 +25,7 @@ export class RequestsController {
   @Post()
   @PrivilegedRoute('OFFEREE')
   makeRequest(
-    @ExtractUser() user: User,
+    @CurrentUser() user: User,
     @Body() makeRequestDTO: MakeRequestDTO,
   ): Promise<{ id: string }> {
     return;
@@ -34,7 +34,7 @@ export class RequestsController {
   @Get()
   @PrivilegedRoute('OFFEREE', 'OFFEROR')
   obtainRequests(
-    @ExtractUser() user: User,
+    @CurrentUser() user: User,
     @Query() obtainRequestsDTO: ObtainRequestsDTO,
   ): Promise<Request[]> {
     return;

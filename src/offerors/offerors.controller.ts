@@ -14,15 +14,15 @@ import {
   UploadedFile,
 } from '@nestjs/common';
 import { OfferorsService } from './offerors.service';
-import { PrivilegedRoute } from 'src/auth/privileged-route.decorator';
+import { PrivilegedRoute } from '../common/decorators/privileged-route.decorator';
 import RecordOfferorDTO from './dto/record-offeror.dto';
-import Offeror from './offeror.entity';
+import { Offeror } from './entities/offeror.entity';
 import ObtainOfferorsDTO from './dto/obtain-offerors.dto';
-import ExtractUser from 'src/auth/extract-user.decorator';
-import { OfferorReputation } from './types';
+import CurrentUser from 'src/auth/current-user.decorator';
+import { OfferorReputation } from './entities/offeror.entity';
 import AmendBusinessInfoDTO from './dto/amend-business-info.dto';
 import AlterReputationDTO from './dto/alter-reputation.dto';
-import User from 'src/auth/user.entity';
+import { User } from '../auth/entities/user.entity';
 import {
   FileFieldsInterceptor,
   FileInterceptor,
@@ -59,7 +59,7 @@ export class OfferorsController {
   @Post('/services')
   @PrivilegedRoute('OFFEROR')
   provideService(
-    @ExtractUser() user: User,
+    @CurrentUser() user: User,
     @Body() provideServiceDTO: ProvideServiceDTO,
   ): Promise<void> {
     return;
@@ -69,7 +69,7 @@ export class OfferorsController {
   @PrivilegedRoute('OFFEROR')
   @UseInterceptors(FilesInterceptor('gallery', 10))
   addGalleryImages(
-    @ExtractUser() user: User,
+    @CurrentUser() user: User,
     @UploadedFiles()
     images: Express.Multer.File[],
   ): Promise<{ uploadResults: string }> {
@@ -80,7 +80,7 @@ export class OfferorsController {
   @PrivilegedRoute('OFFEROR')
   @UseInterceptors(FileInterceptor('image'))
   addEvent(
-    @ExtractUser() user: User,
+    @CurrentUser() user: User,
     @UploadedFile(
       new ParseFilePipe({
         validators: [new FileTypeValidator({ fileType: 'image/*' })],
@@ -104,7 +104,7 @@ export class OfferorsController {
   @Get('/business-info')
   @PrivilegedRoute('OFFEROR')
   claimBusinessInfo(
-    @ExtractUser() user: User,
+    @CurrentUser() user: User,
   ): Promise<
     Pick<
       Offeror,
@@ -121,14 +121,14 @@ export class OfferorsController {
 
   @Get('/reputation')
   @PrivilegedRoute('OFFEROR')
-  claimReputation(@ExtractUser() user: User): Promise<OfferorReputation> {
+  claimReputation(@CurrentUser() user: User): Promise<OfferorReputation> {
     return;
   }
 
   @Patch('/business-info')
   @PrivilegedRoute('OFFEROR')
   amendBusinessInfo(
-    @ExtractUser() user: User,
+    @CurrentUser() user: User,
     @Body() amendBusinessInfoDTO: AmendBusinessInfoDTO,
   ): Promise<void> {
     return;
@@ -146,7 +146,7 @@ export class OfferorsController {
   @Patch('/services/:idService/info')
   @PrivilegedRoute('OFFEROR')
   alterServiceInfo(
-    @ExtractUser() user: User,
+    @CurrentUser() user: User,
     @Param('idService') idService: string,
     @Body()
     alterServiceInfoDTO: AlterServiceInfoDTO,
@@ -158,7 +158,7 @@ export class OfferorsController {
   @PrivilegedRoute('OFFEROR')
   @UseInterceptors(FileInterceptor('image'))
   changeHighlightImage(
-    @ExtractUser() user: User,
+    @CurrentUser() user: User,
     @UploadedFile(
       new ParseFilePipe({
         validators: [new FileTypeValidator({ fileType: 'image/*' })],
@@ -204,7 +204,7 @@ export class OfferorsController {
   @Delete('/services')
   @PrivilegedRoute('OFFEROR')
   deleteServices(
-    @ExtractUser() user: User,
+    @CurrentUser() user: User,
     @Body() deleteServicesDTO: DeleteServicesDTO,
   ): Promise<{ affectedRecords: string }> {
     return;

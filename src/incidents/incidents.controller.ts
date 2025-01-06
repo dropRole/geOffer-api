@@ -9,14 +9,14 @@ import {
   Delete,
 } from '@nestjs/common';
 import { IncidentsService } from './incidents.service';
-import { PrivilegedRoute } from 'src/auth/privileged-route.decorator';
-import ExtractUser from 'src/auth/extract-user.decorator';
+import { PrivilegedRoute } from '../common/decorators/privileged-route.decorator';
+import CurrentUser from 'src/auth/current-user.decorator';
 import OpenIncidentDTO from './dto/open-incident.dto';
-import Incident from './incident.entity';
+import Incident from './entities/incident.entity';
 import ObtainIncidentsDTO from './dto/obtain-incidents.dto';
 import RenameIncidentDTO from './dto/rename-incident.dto';
 import AlterIncidentStatusDTO from './dto/alter-incident-status.dto';
-import User from 'src/auth/user.entity';
+import { User } from '../auth/entities/user.entity';
 
 @Controller('incidents')
 export class IncidentsController {
@@ -25,7 +25,7 @@ export class IncidentsController {
   @Post()
   @PrivilegedRoute('OFFEREE', 'OFFEROR')
   openIncident(
-    @ExtractUser() user: User,
+    @CurrentUser() user: User,
     @Body() openIncidentDTO: OpenIncidentDTO,
   ): Promise<{ id: string }> {
     return;

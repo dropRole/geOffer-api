@@ -7,7 +7,7 @@ import {
   Check,
 } from 'typeorm';
 import BaseEntity from 'src/common/entities/base.entity';
-import User from 'src/auth/entities/user.entity';
+import { User } from 'src/auth/entities/user.entity';
 import Request from 'src/requests/entities/request.entity';
 import Image from './image.entity';
 import Event from './event.entity';
@@ -43,14 +43,14 @@ type OfferorBusinessHours = {
     | 'Sunday']: { from: string; to: string };
 };
 
-type OfferorReputation = {
+export type OfferorReputation = {
   responsiveness: number;
   compliance: number;
   timeliness: number;
 };
 
 @Entity('offerors')
-export default class Offeror extends BaseEntity {
+export class Offeror extends BaseEntity {
   @Column({ type: 'text' })
   name: string;
 

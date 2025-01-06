@@ -8,7 +8,7 @@ import {
   OneToMany,
 } from 'typeorm';
 import BaseEntity from 'src/common/entities/base.entity';
-import User from 'src/auth/entities/user.entity';
+import { User } from 'src/auth/entities/user.entity';
 import Reservation from 'src/reservations/entities/reservation.entity';
 import Complaint from 'src/complaints/entities/complaint.entity';
 

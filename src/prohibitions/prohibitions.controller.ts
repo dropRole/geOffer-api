@@ -9,13 +9,13 @@ import {
   Delete,
 } from '@nestjs/common';
 import { ProhibitionsService } from './prohibitions.service';
-import { PrivilegedRoute } from 'src/auth/privileged-route.decorator';
+import { PrivilegedRoute } from '../common/decorators/privileged-route.decorator';
 import DeclareProhibitionDTO from './dto/declare-prohibition.dto';
-import ExtractUser from 'src/auth/extract-user.decorator';
-import Prohibition from './prohibition.entity';
+import CurrentUser from 'src/auth/current-user.decorator';
+import Prohibition from './entities/prohibition.entity';
 import ObtainProhibitionsDTO from './dto/obtain-prohibitions.dto';
 import AlterTimeframeDTO from './dto/alter-timeframe.dto';
-import User from 'src/auth/user.entity';
+import { User } from '../auth/entities/user.entity';
 
 @Controller('prohibitions')
 export class ProhibitionsController {
@@ -32,7 +32,7 @@ export class ProhibitionsController {
   @Get()
   @PrivilegedRoute('SUPERUSER', 'OFFEREE', 'OFFEROR')
   obtainProhibitions(
-    @ExtractUser() user: User,
+    @CurrentUser() user: User,
     @Query() obtainProhibitionsDTO: ObtainProhibitionsDTO,
   ): Promise<Prohibition[]> {
     return;

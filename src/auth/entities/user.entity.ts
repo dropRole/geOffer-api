@@ -6,7 +6,7 @@ import Complaint from 'src/complaints/entities/complaint.entity';
 export type UserPrivilege = 'SUPERUSER' | 'OFFEREE' | 'OFFEROR';
 
 @Entity('users')
-export default class User {
+export class User {
   @PrimaryColumn({ type: 'varchar', length: 20, unique: true })
   username: string;
 

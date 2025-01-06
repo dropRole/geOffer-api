@@ -1,6 +1,6 @@
 import BaseEntity from 'src/common/entities/base.entity';
 import { Check, Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
-import Offeror from './offeror.entity';
+import { Offeror } from './offeror.entity';
 import Event from './event.entity';
 
 type ImageType = 'HIGHLIGHT' | 'GALLERY';
