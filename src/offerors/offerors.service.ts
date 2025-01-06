@@ -6,7 +6,7 @@ import {
   forwardRef,
 } from '@nestjs/common';
 import BaseService from 'src/base.service';
-import Offeror from './offeror.entity';
+import { Offeror } from './entities/offeror.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
   DataSource,
@@ -16,19 +16,15 @@ import {
 } from 'typeorm';
 import RecordOfferorDTO from './dto/record-offeror.dto';
 import { AuthService } from 'src/auth/auth.service';
-import User from 'src/auth/user.entity';
+import { User } from 'src/auth/entities/user.entity';
 import * as bcrypt from 'bcrypt';
 import ObtainOfferorsDTO from './dto/obtain-offerors.dto';
-import {
-  OfferorCategory,
-  OfferorReputation,
-  OfferorServiceCategory,
-} from './types';
+import { OfferorCategory, OfferorReputation } from './entities/offeror.entity';
 import AmendBusinessInfoDTO from './dto/amend-business-info.dto';
 import AlterReputationDTO from './dto/alter-reputation.dto';
-import Reservation from 'src/reservations/reservation.entity';
+import Reservation from '../reservations/entities/reservation.entity';
 import { ReservationsService } from 'src/reservations/reservations.service';
-import Image from './image.entity';
+import Image from './entities/image.entity';
 import {
   S3Client,
   PutObjectCommand,
@@ -40,9 +36,10 @@ import {
 import { DeleteGalleryImagesDTO } from './dto/delete-gallery-images.dto';
 import * as path from 'path';
 import { ProvideServiceDTO } from './dto/provide-service.dto';
-import Service from './service.entity';
-import Event from './event.entity';
-import ServiceToOfferor from './service-to-offeror.entity';
+import { Service } from './entities/service.entity';
+import type { ServiceCategory } from './entities/service.entity';
+import Event from './entities/event.entity';
+import ServiceToOfferor from './entities/service-to-offeror.entity';
 import { AddEventDTO } from './dto/add-event.dto';
 import { AlterServiceInfoDTO } from './dto/alter-service-info.dto';
 import { DeleteServicesDTO } from './dto/delete-services-products.dto';
@@ -231,7 +228,7 @@ export class OfferorsService extends BaseService<Offeror> {
     const { category, detailed, price, idEvent } = provideServiceDTO;
 
     const service: Service = this.servicesRepo.create({
-      category: category as OfferorServiceCategory,
+      category: category as ServiceCategory,
       detailed,
       offerors: [],
     });

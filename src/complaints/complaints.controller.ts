@@ -9,11 +9,11 @@ import {
   Query,
 } from '@nestjs/common';
 import { ComplaintsService } from './complaints.service';
-import { PrivilegedRoute } from 'src/auth/privileged-route.decorator';
-import ExtractUser from 'src/auth/extract-user.decorator';
-import User from 'src/auth/user.entity';
+import { PrivilegedRoute } from '../common/decorators/privileged-route.decorator';
+import CurrentUser from 'src/auth/current-user.decorator';
+import { User } from 'src/auth/entities/user.entity';
 import WriteComplaintDTO from './dto/write-complaint.dto';
-import Complaint from './complaint.entity';
+import Complaint from './entities/complaint.entity';
 import ObtainComplaintsDTO from './dto/obtain-complaints.dto';
 import RewriteComplaintDTO from './dto/rewrite-complaint.dto';
 
@@ -24,7 +24,7 @@ export class ComplaintsController {
   @Post()
   @PrivilegedRoute('OFFEREE', 'OFFEROR')
   writeComplaint(
-    @ExtractUser() user: User,
+    @CurrentUser() user: User,
     @Body() writeComplaintDTO: WriteComplaintDTO,
   ): Promise<{ id: string }> {
     return this.complaintsService.writeComplaint(user, writeComplaintDTO);

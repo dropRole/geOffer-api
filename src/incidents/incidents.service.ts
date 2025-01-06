@@ -6,17 +6,17 @@ import {
   forwardRef,
 } from '@nestjs/common';
 import BaseService from 'src/base.service';
-import Incident from './incident.entity';
+import { Incident } from './entities/incident.entity';
+import type { IncidentStatus } from './entities/incident.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, SelectQueryBuilder } from 'typeorm';
-import User from 'src/auth/user.entity';
+import { User } from '../auth/entities/user.entity';
 import OpenIncidentDTO from './dto/open-incident.dto';
 import { ReservationsService } from 'src/reservations/reservations.service';
-import Reservation from 'src/reservations/reservation.entity';
+import Reservation from '../reservations/entities/reservation.entity';
 import ObtainIncidentsDTO from './dto/obtain-incidents.dto';
 import RenameIncidentDTO from './dto/rename-incident.dto';
 import AlterIncidentStatusDTO from './dto/alter-incident-status.dto';
-import IncidentStatus from './types';
 
 @Injectable()
 export class IncidentsService extends BaseService<Incident> {

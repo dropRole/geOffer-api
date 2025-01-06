@@ -1,10 +1,10 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import Offeree from './offeree.entity';
+import Offeree from './entities/offeree.entity';
 import { SelectQueryBuilder, Repository } from 'typeorm';
 import BaseService from 'src/base.service';
 import ObtainOffereesDTO from './dto/obtain-offerees.dto';
-import User from 'src/auth/user.entity';
+import { User } from '../auth/entities/user.entity';
 import AmendBasicsDTO from './dto/amend-basics.dto';
 
 @Injectable()

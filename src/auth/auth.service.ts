@@ -5,18 +5,20 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import BaseService from 'src/base.service';
-import User from './user.entity';
+import { User } from './entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource, QueryRunner } from 'typeorm';
 import * as bcrypt from 'bcrypt';
-import Offeree from 'src/offerees/offeree.entity';
+import Offeree from '../offerees/entities/offeree.entity';
 import SignupDTO from './dto/signup.dto';
-import { JwtPayload, Token } from './types';
+import { JwtPayload } from './strategies/jwt.strategy';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import LoginDTO from './dto/login.dto';
 import AlterUsernameDTO from './dto/alter-username.dto';
 import AlterPasswordDTO from './dto/alter-password.dto';
+import { Response } from 'express';
+import * as moment from 'moment';
 
 @Injectable()
 export class AuthService extends BaseService<User> {
@@ -81,27 +83,65 @@ export class AuthService extends BaseService<User> {
     this.dataLoggerService.create(offeree.constructor.name, offeree.id);
   }
 
-  async signToken(username: string): Promise<Token> {
-    await this.obtainOneBy({ username });
+  async refreshToken(user: User, response: Response): Promise<void> {
+    await this.obtainOneBy({ username: user.username });
 
-    const payload: JwtPayload = { username };
+    const payload: JwtPayload = { username: user.username };
 
-    const token: string = await this.jwtService.signAsync(payload);
+    const token: string = this.jwtService.sign(payload, {
+      secret: this.configService.getOrThrow('JWT_SECRET'),
+      expiresIn: this.configService.getOrThrow('JWT_EXPIRE'),
+    });
 
-    return {
-      type: 'access',
-      value: token,
-      expire: this.configService.get('JWT_EXPIRE'),
-    };
+    const todaysDate = moment(new Date());
+
+    response.cookie('JWT', token, {
+      httpOnly: true,
+      secure: process.env.STAGE === 'prod',
+      expires: todaysDate
+        .add(this.configService.getOrThrow('JWT_EXPIRE'), 'seconds')
+        .toDate(),
+    });
   }
 
-  async login(loginDTO: LoginDTO): Promise<Token> {
+  async login(loginDTO: LoginDTO, response: Response): Promise<void> {
     const { username, password } = loginDTO;
 
     const user: User = await this.repo.findOneBy({ username });
 
-    if (user && (await bcrypt.compare(password, user.password)))
-      return await this.signToken(username);
+    const payload: JwtPayload = { username };
+
+    if (user && (await bcrypt.compare(password, user.password))) {
+      const token: string = this.jwtService.sign(payload, {
+        secret: this.configService.getOrThrow('JWT_SECRET'),
+        expiresIn: this.configService.getOrThrow('JWT_EXPIRE'),
+      });
+
+      const refreshToken: string = this.jwtService.sign(payload, {
+        secret: this.configService.getOrThrow('JWT_REFRESH_SECRET'),
+        expiresIn: this.configService.getOrThrow('JWT_REFRESH_EXPIRE'),
+      });
+
+      const todaysDate = moment(new Date());
+
+      response.cookie('JWT', token, {
+        httpOnly: true,
+        secure: process.env.STAGE === 'prod',
+        expires: todaysDate
+          .add(this.configService.getOrThrow('JWT_EXPIRE'), 'seconds')
+          .toDate(),
+      });
+
+      response.cookie('JWTRefresh', refreshToken, {
+        httpOnly: true,
+        secure: process.env.STAGE === 'prod',
+        expires: todaysDate
+          .add(this.configService.getOrThrow('JWT_REFRESH_EXPIRE'), 'seconds')
+          .toDate(),
+      });
+
+      return;
+    }
 
     throw new UnauthorizedException('Check your credentials.');
   }
@@ -109,7 +149,8 @@ export class AuthService extends BaseService<User> {
   async alterUsername(
     user: User,
     alterUsernameDTO: AlterUsernameDTO,
-  ): Promise<Token> {
+    response: Response,
+  ): Promise<void> {
     const { username } = alterUsernameDTO;
 
     const inUse: User = await this.repo.findOneBy({ username });
@@ -125,13 +166,41 @@ export class AuthService extends BaseService<User> {
       );
     }
 
+    const payload: JwtPayload = { username };
+
+    const token: string = this.jwtService.sign(payload, {
+      secret: this.configService.getOrThrow('JWT_SECRET'),
+      expiresIn: this.configService.getOrThrow('JWT_EXPIRE'),
+    });
+
+    const refreshToken: string = this.jwtService.sign(payload, {
+      secret: this.configService.getOrThrow('JWT_REFRESH_SECRET'),
+      expiresIn: this.configService.getOrThrow('JWT_REFRESH_EXPIRE'),
+    });
+
+    const todaysDate = moment(new Date());
+
+    response.cookie('JWT', token, {
+      httpOnly: true,
+      secure: process.env.STAGE === 'prod',
+      expires: todaysDate
+        .add(this.configService.getOrThrow('JWT_EXPIRE'), 'seconds')
+        .toDate(),
+    });
+
+    response.cookie('JWTRefresh', refreshToken, {
+      httpOnly: true,
+      secure: process.env.STAGE === 'prod',
+      expires: todaysDate
+        .add(this.configService.getOrThrow('JWT_REFRESH_EXPIRE'), 'seconds')
+        .toDate(),
+    });
+
     this.dataLoggerService.update(
       user.constructor.name,
       user.username,
       `username: ${user.username} => username: ${username}`,
     );
-
-    return await this.signToken(username);
   }
 
   async alterPassword(

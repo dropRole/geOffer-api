@@ -1,13 +1,14 @@
-import BaseEntity from 'src/base.entity';
+import BaseEntity from 'src/common/entities/base.entity';
 import { Check, Column, Entity, OneToMany } from 'typeorm';
-import { OfferorServiceCategory } from './types';
 import ServiceToOfferor from './service-to-offeror.entity';
 
+export type ServiceCategory = 'Seat reservation' | 'Ticket selling';
+
 @Entity('services')
-export default class Service extends BaseEntity {
+export class Service extends BaseEntity {
   @Check("category IN('Seat reservation', 'Ticket selling')")
   @Column({ type: 'varchar', length: 16 })
-  category: OfferorServiceCategory;
+  category: ServiceCategory;
 
   @Column({ type: 'text', nullable: true })
   detailed: string;

@@ -1,6 +1,6 @@
 import { Processor, Process } from '@nestjs/bull';
 import { Job } from 'bull';
-import Prohibition from './prohibition.entity';
+import Prohibition from './entities/prohibition.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { InternalServerErrorException } from '@nestjs/common';

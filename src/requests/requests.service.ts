@@ -6,21 +6,20 @@ import {
   forwardRef,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import Request from './request.entity';
+import Request from './entities/request.entity';
 import { Repository } from 'typeorm';
 import BaseService from 'src/base.service';
-import User from 'src/auth/user.entity';
+import { User } from '../auth/entities/user.entity';
 import MakeRequestDTO from './dto/make-request.dto';
 import { OfferorsService } from 'src/offerors/offerors.service';
-import Offeror from 'src/offerors/offeror.entity';
 import ObtainRequestsDTO from './dto/obtain-requests.dto';
 import AmendRequestProvisionsDTO from './dto/amend-request-provisions.dto';
 import AssessReservationTimeDTO from './dto/assess-reservation-time.dto';
 import { ReservationsService } from 'src/reservations/reservations.service';
-import Offeree from 'src/offerees/offeree.entity';
+import Offeree from '../offerees/entities/offeree.entity';
 import { OffereesService } from 'src/offerees/offerees.service';
-import Reservation from 'src/reservations/reservation.entity';
-import ServiceToRequest from './service-to-request.entity';
+import Reservation from '../reservations/entities/reservation.entity';
+import ServiceToRequest from './entities/service-to-request.entity';
 
 @Injectable()
 export class RequestsService extends BaseService<Request> {

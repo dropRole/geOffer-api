@@ -1,11 +1,11 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import BaseService from 'src/base.service';
-import Complaint from './complaint.entity';
+import Complaint from './entities/complaint.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository, SelectQueryBuilder } from 'typeorm';
-import User from 'src/auth/user.entity';
+import { User } from '../auth/entities/user.entity';
 import WriteComplaintDTO from './dto/write-complaint.dto';
-import Incident from 'src/incidents/incident.entity';
+import { Incident } from '../incidents/entities/incident.entity';
 import ObtainComplaintsDTO from './dto/obtain-complaints.dto';
 import RewriteComplaintDTO from './dto/rewrite-complaint.dto';
 

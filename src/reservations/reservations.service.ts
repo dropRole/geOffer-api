@@ -6,16 +6,16 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import BaseService from 'src/base.service';
-import Reservation from './reservation.entity';
+import Reservation from './entities/reservation.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, SelectQueryBuilder } from 'typeorm';
-import User from 'src/auth/user.entity';
+import { User } from '../auth/entities/user.entity';
 import MakeReservationDTO from './dto/make-reservation.dto';
 import { RequestsService } from 'src/requests/requests.service';
-import Request from 'src/requests/request.entity';
+import Request from '../requests/entities/request.entity';
 import ObtainReservationsDTO from './dto/obtain-reservations.dto';
 import { IncidentsService } from 'src/incidents/incidents.service';
-import Incident from 'src/incidents/incident.entity';
+import { Incident } from '../incidents/entities/incident.entity';
 
 @Injectable()
 export class ReservationsService extends BaseService<Reservation> {

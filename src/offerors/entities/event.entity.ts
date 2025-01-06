@@ -1,6 +1,6 @@
-import BaseEntity from 'src/base.entity';
+import BaseEntity from 'src/common/entities/base.entity';
 import { Column, Entity, ManyToOne, OneToMany } from 'typeorm';
-import Offeror from './offeror.entity';
+import { Offeror } from './offeror.entity';
 import Image from './image.entity';
 import ServiceToOfferor from './service-to-offeror.entity';
 

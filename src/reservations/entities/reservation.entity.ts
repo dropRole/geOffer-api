@@ -1,7 +1,7 @@
 import { Entity, Column, OneToOne, JoinColumn, OneToMany } from 'typeorm';
-import BaseEntity from 'src/base.entity';
-import Request from 'src/requests/request.entity';
-import Incident from 'src/incidents/incident.entity';
+import BaseEntity from 'src/common/entities/base.entity';
+import Request from 'src/requests/entities/request.entity';
+import { Incident } from 'src/incidents/entities/incident.entity';
 
 @Entity('reservations')
 export default class Reservation extends BaseEntity {
