@@ -15,7 +15,7 @@ export class OffereesController {
   @PrivilegedRoute('SUPERUSER')
   obtainOfferees(
     @Query() obtainOffereesDTO: ObtainOffereesDTO,
-  ): Promise<Offeree[]> {
+  ): Promise<{ offerees: Offeree[]; count: number }> {
     return;
   }
 
