@@ -1,11 +1,9 @@
 import {
-  IsNotEmpty,
-  IsNumberString,
   IsString,
   IsOptional,
   IsDateString,
   IsUUID,
-  IsIn,
+  IsNumberString,
 } from 'class-validator';
 
 export default class MakeRequestDTO {
@@ -17,6 +15,9 @@ export default class MakeRequestDTO {
   @IsDateString()
   requestedFor: string;
 
+  @IsNumberString()
+  amount: number;
+
   @IsUUID()
-  idOfferorServiceProduct: string;
+  idOfferorService: string;
 }
