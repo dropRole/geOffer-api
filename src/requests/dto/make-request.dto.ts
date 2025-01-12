@@ -1,11 +1,9 @@
 import {
-  IsNotEmpty,
-  IsNumberString,
   IsString,
   IsOptional,
   IsDateString,
   IsUUID,
-  IsIn,
+  IsNumberString,
 } from 'class-validator';
 
 export default class MakeRequestDTO {
