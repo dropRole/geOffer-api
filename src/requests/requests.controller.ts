@@ -36,7 +36,7 @@ export class RequestsController {
   obtainRequests(
     @CurrentUser() user: User,
     @Query() obtainRequestsDTO: ObtainRequestsDTO,
-  ): Promise<Request[]> {
+  ): Promise<{ requests: Request[]; count: number }> {
     return this.requestsService.obtainRequests(user, obtainRequestsDTO);
   }
 

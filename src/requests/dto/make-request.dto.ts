@@ -17,6 +17,9 @@ export default class MakeRequestDTO {
   @IsDateString()
   requestedFor: string;
 
+  @IsNumberString()
+  amount: number;
+
   @IsUUID()
-  idOfferorServiceProduct: string;
+  idOfferorService: string;
 }

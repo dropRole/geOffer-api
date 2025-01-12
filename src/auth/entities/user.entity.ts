@@ -18,7 +18,7 @@ export class User {
   @Column({ type: 'varchar', length: 9 })
   privilege: UserPrivilege;
 
-  @Column({ type: 'timestamp', default: 'NOW' })
+  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created: string;
 
   @OneToMany((_type) => Incident, (incident) => incident.openedBy)

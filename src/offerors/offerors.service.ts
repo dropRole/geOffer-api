@@ -29,9 +29,6 @@ import {
   S3Client,
   PutObjectCommand,
   DeleteObjectCommand,
-  CreateMultipartUploadCommand,
-  CompleteMultipartUploadCommand,
-  AbortMultipartUploadCommand,
 } from '@aws-sdk/client-s3';
 import { DeleteGalleryImagesDTO } from './dto/delete-gallery-images.dto';
 import * as path from 'path';
@@ -121,7 +118,6 @@ export class OfferorsService extends BaseService<Offeror> {
         email,
         businessHours: JSON.parse(businessHours),
         user,
-        requests: [],
         images: [],
         events: [],
       });
@@ -136,14 +132,14 @@ export class OfferorsService extends BaseService<Offeror> {
         await queryRunner.manager.insert(Offeror, offeror);
 
         await queryRunner.commitTransaction();
-
-        await queryRunner.release();
       } catch (error) {
         await queryRunner.rollbackTransaction();
 
         throw new InternalServerErrorException(
           `Error during the user and offeror insertion transaction: ${error.message}.`,
         );
+      } finally {
+        await queryRunner.release();
       }
 
       this.dataLoggerService.create(user.constructor.name, user.username);
@@ -227,15 +223,28 @@ export class OfferorsService extends BaseService<Offeror> {
 
     const { category, detailed, price, idEvent } = provideServiceDTO;
 
-    const service: Service = this.servicesRepo.create({
-      category: category as ServiceCategory,
-      detailed,
-      offerors: [],
-    });
+    let service: Service;
 
-    const queryRunner: QueryRunner = this.dataSource.createQueryRunner();
+    try {
+      service = await this.servicesRepo.findOneBy({
+        category: category as ServiceCategory,
+      });
+    } catch (error) {
+      throw new InternalServerErrorException(
+        `Error during fetching the service with the category ${category}: ${error.message}.`,
+      );
+    }
 
-    let event: Event = undefined;
+    let event: Event;
+
+    if (idEvent)
+      try {
+        event = await this.eventsRepo.findOneBy({ id: idEvent });
+      } catch (error) {
+        throw new InternalServerErrorException(
+          `Error during fetching the event identified with ${idEvent}: ${error.message}.`,
+        );
+      }
 
     const serviceToOfferor: ServiceToOfferor = this.offerorServicesRepo.create({
       price,
@@ -245,29 +254,57 @@ export class OfferorsService extends BaseService<Offeror> {
       serviceRequests: [],
     });
 
+    const queryRunner: QueryRunner = this.dataSource.createQueryRunner();
+
+    if (!service) {
+      service = this.servicesRepo.create({
+        category: category as ServiceCategory,
+        detailed,
+        offerors: [],
+      });
+
+      try {
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
+
+        const serviceInsertResult = await queryRunner.manager.insert(
+          Service,
+          service,
+        );
+
+        await queryRunner.manager.insert(ServiceToOfferor, {
+          ...serviceToOfferor,
+          service: { ...service, id: serviceInsertResult.identifiers[0].id },
+        });
+
+        await queryRunner.commitTransaction();
+      } catch (error) {
+        await queryRunner.rollbackTransaction();
+
+        throw new InternalServerErrorException(
+          `Error during service insertion: ${error.message}.`,
+        );
+      } finally {
+        await queryRunner.release();
+      }
+
+      this.dataLoggerService.create(service.constructor.name, service.id);
+      this.dataLoggerService.create(
+        ServiceToOfferor.constructor.name,
+        serviceToOfferor.id,
+      );
+
+      return;
+    }
+
     try {
-      await queryRunner.connect();
-      await queryRunner.startTransaction();
-
-      await queryRunner.manager.insert(Service, service);
-
-      if (idEvent) event = await this.eventsRepo.findOneBy({ id: idEvent });
-
-      await queryRunner.manager.insert(ServiceToOfferor, serviceToOfferor);
-
-      await queryRunner.commitTransaction();
+      await this.offerorServicesRepo.insert(serviceToOfferor);
     } catch (error) {
-      await queryRunner.rollbackTransaction();
-
-      await queryRunner.release();
-
       throw new InternalServerErrorException(
-        `Error during service insertion: ${error.message}.`,
+        `Error during the offeror's service insertion: ${error.message}.`,
       );
     }
-    await queryRunner.release();
 
-    this.dataLoggerService.create(service.constructor.name, service.id);
     this.dataLoggerService.create(
       ServiceToOfferor.constructor.name,
       serviceToOfferor.id,
@@ -475,7 +512,9 @@ export class OfferorsService extends BaseService<Offeror> {
         offerors.map(async (offeror): Promise<ObtainedOfferor> => {
           const reservations: Reservation[] =
             await this.reservationsService.obtainManyBy({
-              request: { offeror: { id: offeror.id } },
+              request: {
+                services: { serviceToOfferor: { offeror: { id: offeror.id } } },
+              },
             });
 
           offeror.reservationsMade = reservations.length;
@@ -495,6 +534,24 @@ export class OfferorsService extends BaseService<Offeror> {
     }
 
     return { offerors, count: offerorCount };
+  }
+
+  async obtainOfferorService(
+    idOfferorService: string,
+  ): Promise<ServiceToOfferor> {
+    let offerorService: ServiceToOfferor;
+
+    try {
+      offerorService = await this.offerorServicesRepo.findOneBy({
+        id: idOfferorService,
+      });
+    } catch (error) {
+      throw new InternalServerErrorException(
+        `Error during fetching the offeror's service: ${error.message}.`,
+      );
+    }
+
+    return offerorService;
   }
 
   async claimBusinessInfo(
