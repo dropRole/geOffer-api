@@ -24,7 +24,7 @@ export default class Incident extends BaseEntity {
   @Column({ type: 'varchar', length: 8, default: 'PENDING' })
   status: IncidentStatus;
 
-  @Column({ type: 'timestamp', default: 'NOW' })
+  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   opened: string;
 
   @Column({ type: 'text', nullable: true })

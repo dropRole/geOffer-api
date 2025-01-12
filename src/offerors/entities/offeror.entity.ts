@@ -92,9 +92,6 @@ export default class Offeror extends BaseEntity {
   @JoinColumn({ name: 'username' })
   user: User;
 
-  @OneToMany((_type) => Request, (request) => request.offeror)
-  requests: Request[];
-
   @OneToMany((_type) => Image, (offerorImage) => offerorImage.offeror, {
     eager: true,
   })

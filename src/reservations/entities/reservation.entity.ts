@@ -5,7 +5,7 @@ import Incident from 'src/incidents/entities/incident.entity';
 
 @Entity('reservations')
 export default class Reservation extends BaseEntity {
-  @Column({ type: 'timestamp', default: 'NOW' })
+  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   reserved: string;
 
   @Column({ type: 'varchar', length: 15 })

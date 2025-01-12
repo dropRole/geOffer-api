@@ -16,7 +16,7 @@ export default class Complaint extends BaseEntity {
   @Column({ type: 'text' })
   content: string;
 
-  @Column({ type: 'timestamp', default: 'NOW' })
+  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   written: string;
 
   @Column({ type: 'timestamp', nullable: true })
