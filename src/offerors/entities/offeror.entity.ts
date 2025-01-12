@@ -8,7 +8,6 @@ import {
 } from 'typeorm';
 import BaseEntity from 'src/common/entities/base.entity';
 import User from 'src/auth/entities/user.entity';
-import Request from 'src/requests/entities/request.entity';
 import Image from './image.entity';
 import Event from './event.entity';
 import ServiceToOfferor from './service-to-offeror.entity';
@@ -91,9 +90,6 @@ export default class Offeror extends BaseEntity {
   })
   @JoinColumn({ name: 'username' })
   user: User;
-
-  @OneToMany((_type) => Request, (request) => request.offeror)
-  requests: Request[];
 
   @OneToMany((_type) => Image, (offerorImage) => offerorImage.offeror, {
     eager: true,

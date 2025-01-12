@@ -8,16 +8,15 @@ import {
 } from 'typeorm';
 import BaseEntity from 'src/common/entities/base.entity';
 import Offeree from 'src/offerees/entities/offeree.entity';
-import Offeror from 'src/offerors/entities/offeror.entity';
 import ServiceToRequest from './service-to-request.entity';
 
 @Entity('requests')
-@Index(['offeree', 'offeror'])
+@Index(['offeree'])
 export default class Request extends BaseEntity {
   @Column({ type: 'text', nullable: true })
   note: string;
 
-  @Column({ type: 'timestamp', default: 'NOW' })
+  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   requestedAt: string;
 
   @Column({ type: 'timestamp', nullable: true })
@@ -33,14 +32,6 @@ export default class Request extends BaseEntity {
   })
   @JoinColumn({ name: 'idOfferee' })
   offeree: Offeree;
-
-  @ManyToOne((_type) => Offeror, (offeror) => offeror.requests, {
-    eager: true,
-    onDelete: 'RESTRICT',
-    nullable: false,
-  })
-  @JoinColumn({ name: 'idOfferor' })
-  offeror: Offeror;
 
   @OneToMany(
     (_type) => ServiceToRequest,
