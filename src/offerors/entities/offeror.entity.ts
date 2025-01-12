@@ -8,7 +8,6 @@ import {
 } from 'typeorm';
 import BaseEntity from 'src/common/entities/base.entity';
 import User from 'src/auth/entities/user.entity';
-import Request from 'src/requests/entities/request.entity';
 import Image from './image.entity';
 import Event from './event.entity';
 import ServiceToOfferor from './service-to-offeror.entity';
