@@ -32,7 +32,7 @@ export class ReservationsController {
   obtainReservations(
     @CurrentUser() user: User,
     @Query() obtainReservationsDTO: ObtainReservationsDTO,
-  ): Promise<Reservation[]> {
+  ): Promise<{ reservations: Reservation[]; count: number }> {
     return this.reservationsService.obtainReservations(
       user,
       obtainReservationsDTO,

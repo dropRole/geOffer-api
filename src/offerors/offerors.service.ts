@@ -491,21 +491,17 @@ export class OfferorsService extends BaseService<Offeror> {
 
     let offerors: ObtainedOfferor[];
 
-    let offerorCount = 0;
-
-    let results = undefined;
+    let records: [ObtainedOfferor[], number];
 
     try {
-      results = await queryBuilder.getManyAndCount();
+      records = await queryBuilder.getManyAndCount();
     } catch (error) {
       throw new InternalServerErrorException(
         `Error during fetching the offerors: ${error.message}.`,
       );
     }
 
-    offerors = results[0];
-
-    offerorCount = results[1];
+    offerors = records[0];
 
     if (reservationsMade) {
       offerors = await Promise.all(
@@ -533,7 +529,7 @@ export class OfferorsService extends BaseService<Offeror> {
         );
     }
 
-    return { offerors, count: offerorCount };
+    return { offerors, count: records[1] };
   }
 
   async obtainOfferorService(
