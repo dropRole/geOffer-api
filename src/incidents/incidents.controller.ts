@@ -36,7 +36,7 @@ export class IncidentsController {
   obtainIncidents(
     @Param('idReservation') idReservation: string,
     @Query() obtainIncidentsDTO: ObtainIncidentsDTO,
-  ): Promise<Incident[]> {
+  ): Promise<{ incidents: Incident[]; count: number }> {
     return;
   }
 
