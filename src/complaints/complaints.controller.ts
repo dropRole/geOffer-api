@@ -35,7 +35,7 @@ export class ComplaintsController {
   obtainComplaints(
     @Param('idIncident') idIncident: string,
     @Query() obtainComplaintsDTO: ObtainComplaintsDTO,
-  ): Promise<Complaint[]> {
+  ): Promise<{ complaints: Complaint[]; count: number }> {
     return this.complaintsService.obtainComplaints(
       idIncident,
       obtainComplaintsDTO,
