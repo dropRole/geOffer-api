@@ -34,7 +34,7 @@ export class ProhibitionsController {
   obtainProhibitions(
     @CurrentUser() user: User,
     @Query() obtainProhibitionsDTO: ObtainProhibitionsDTO,
-  ): Promise<Prohibition[]> {
+  ): Promise<{ prohibitions: Prohibition[]; count: number }> {
     return this.prohibitionsService.obtainProhibitions(
       user,
       obtainProhibitionsDTO,
