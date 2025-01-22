@@ -6,8 +6,8 @@ import {
   OneToMany,
   Check,
 } from 'typeorm';
-import BaseEntity from 'src/common/entities/base.entity';
-import { User } from 'src/auth/entities/user.entity';
+import BaseEntity from '../../common/entities/base.entity';
+import { User } from '../../auth/entities/user.entity';
 import Image from './image.entity';
 import Event from './event.entity';
 import ServiceToOfferor from './service-to-offeror.entity';

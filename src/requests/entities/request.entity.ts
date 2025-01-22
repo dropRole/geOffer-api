@@ -6,8 +6,8 @@ import {
   JoinColumn,
   OneToMany,
 } from 'typeorm';
-import BaseEntity from 'src/common/entities/base.entity';
-import Offeree from 'src/offerees/entities/offeree.entity';
+import BaseEntity from '../../common/entities/base.entity';
+import Offeree from '../..//offerees/entities/offeree.entity';
 import ServiceToRequest from './service-to-request.entity';
 
 @Entity('requests')

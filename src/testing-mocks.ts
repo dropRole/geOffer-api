@@ -11,8 +11,6 @@ import Prohibition from './prohibitions/entities/prohibition.entity';
 import { ReversedLocation, SearchedLocation } from './locationiq/types';
 import OfferorImage from './offerors/entities/image.entity';
 
-const JWTSecret = 'G2DEKyvZ49YLLgi7r/MGEC17W+pEFqdEeOlcouS8lvw=';
-
 let mockUsersRepo: User[] = [];
 let mockOffereesRepo: Offeree[] = [];
 let mockOfferorsRepo: Offeror[] = [];
@@ -343,7 +341,6 @@ mockProhibitionsRepo = [
 ];
 
 export {
-  JWTSecret,
   mockUsersRepo,
   mockOffereesRepo,
   mockProhibitionsRepo,

@@ -17,7 +17,7 @@ import { User } from './entities/user.entity';
 import CurrentUser from './current-user.decorator';
 import AlterUsernameDTO from './dto/alter-username.dto';
 import AlterPasswordDTO from './dto/alter-password.dto';
-import JwtRefreshGuard from 'src/common/guards/jwt-refresh.guard';
+import JwtRefreshGuard from '../common/guards/jwt-refresh.guard';
 import { Response } from 'express';
 
 @Controller('auth')

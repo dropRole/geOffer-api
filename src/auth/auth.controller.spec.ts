@@ -2,17 +2,16 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { AuthController } from './auth.controller';
 import SignupDTO from './dto/signup.dto';
 import LoginDTO from './dto/login.dto';
-import { Token } from './types';
-import User from './user.entity';
+import { User } from './entities/user.entity';
 import AlterUsernameDTO from './dto/alter-username.dto';
 import AlterPasswordDTO from './dto/alter-password.dto';
 import * as bcrypt from 'bcrypt';
 import { ConflictException, UnauthorizedException } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { JWTSecret, mockOffereesRepo, mockUsersRepo } from '../testing-mocks';
-import Offeree from '../offerees/offeree.entity';
+import { mockOffereesRepo, mockUsersRepo } from '../testing-mocks';
+import Offeree from '../offerees/entities/offeree.entity';
 import { v4 as uuidv4 } from 'uuid';
-import * as jwt from 'jwt-simple';
+import { Response } from 'express';
 
 let usersRepo: User[] = mockUsersRepo;
 
@@ -68,35 +67,21 @@ describe('AuthController', () => {
 
                 return;
               }),
-            login: jest.fn().mockImplementation((loginDTO: LoginDTO): Token => {
-              const { username, password } = loginDTO;
-
-              const user: User = usersRepo.find(
-                (user) => user.username === username,
-              );
-
-              if (user && bcrypt.compareSync(password, user.password))
-                return {
-                  type: 'access',
-                  value: jwt.encode({ username }, JWTSecret),
-                  expire: new Date(new Date().setDate(new Date().getDate() + 1))
-                    .getTime()
-                    .toString(),
-                };
-
-              throw new UnauthorizedException('Check your credentials.');
-            }),
-            signToken: jest
+            login: jest
               .fn()
-              .mockImplementation((username: string): Token => {
-                return {
-                  type: 'access',
-                  value: jwt.encode({ username }, JWTSecret),
-                  expire: new Date(new Date().setDate(new Date().getDate() + 1))
-                    .getTime()
-                    .toString(),
-                };
-              }),
+              .mockImplementation(
+                (loginDTO: LoginDTO, response: Response): void => {
+                  const { username, password } = loginDTO;
+
+                  const user: User = usersRepo.find(
+                    (user) => user.username === username,
+                  );
+
+                  if (!(user && bcrypt.compareSync(password, user.password)))
+                    throw new UnauthorizedException('Check your credentials.');
+                },
+              ),
+            refreshToken: jest.fn().mockReturnValue(undefined),
             claimBasics: jest
               .fn()
               .mockImplementation(
@@ -115,7 +100,7 @@ describe('AuthController', () => {
             alterUsername: jest
               .fn()
               .mockImplementation(
-                (user: User, alterUsernameDTO: AlterUsernameDTO): Token => {
+                (user: User, alterUsernameDTO: AlterUsernameDTO): void => {
                   const { username } = alterUsernameDTO;
 
                   const inUse: User | undefined = usersRepo.find(
@@ -132,16 +117,6 @@ describe('AuthController', () => {
 
                     return user;
                   });
-
-                  return {
-                    type: 'access',
-                    value: jwt.encode({ username }, JWTSecret),
-                    expire: new Date(
-                      new Date().setDate(new Date().getDate() + 1),
-                    )
-                      .getTime()
-                      .toString(),
-                  };
                 },
               ),
             alterPassword: jest
@@ -196,30 +171,22 @@ describe('AuthController', () => {
       password: 'geoffer@Admin24',
     };
 
-    it('should return an object holding type, value and expire properties', () => {
-      expect(controller.login(loginDTO)).toMatchObject<Token>({
-        type: 'access',
-        value: expect.any(String),
-        expire: expect.any(String),
-      });
+    it('should be void', () => {
+      expect(controller.login(loginDTO, undefined)).toBeUndefined();
     });
 
     it('should throw a UnauthorizedException', () => {
       loginDTO.password = usersRepo[1].password;
 
-      expect(() => controller.login(loginDTO)).toThrow(
+      expect(() => controller.login(loginDTO, undefined)).toThrow(
         'Check your credentials.',
       );
     });
   });
 
-  describe('signJWT', () => {
-    it('should return an object holding type, value and expire properties', () => {
-      expect(controller.signToken(usersRepo[0].username)).toMatchObject<Token>({
-        type: 'access',
-        value: expect.any(String),
-        expire: expect.any(String),
-      });
+  describe('refreshToken', () => {
+    it('should be void', () => {
+      expect(controller.refreshToken(usersRepo[0], undefined)).toBeUndefined();
     });
   });
 
@@ -236,23 +203,27 @@ describe('AuthController', () => {
   });
 
   describe('alterUsername', () => {
-    it('should return an object holding username, privilege and created properties', () => {
+    it('should be void', () => {
       expect(
-        controller.alterUsername(usersRepo[0], {
-          username: `${usersRepo[0].username}_alter`,
-        }),
-      ).toMatchObject<Token>({
-        type: 'access',
-        value: expect.any(String),
-        expire: expect.any(String),
-      });
+        controller.alterUsername(
+          usersRepo[0],
+          {
+            username: `${usersRepo[0].username}_alter`,
+          },
+          undefined,
+        ),
+      ).toBeUndefined();
     });
 
     it('should throw a ConflictException', () => {
       expect(() =>
-        controller.alterUsername(usersRepo[0], {
-          username: `${usersRepo[1].username}`,
-        }),
+        controller.alterUsername(
+          usersRepo[0],
+          {
+            username: `${usersRepo[1].username}`,
+          },
+          undefined,
+        ),
       ).toThrow(`Username ${usersRepo[1].username} is already in use.`);
     });
   });
