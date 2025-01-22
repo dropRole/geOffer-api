@@ -1,6 +1,6 @@
 import { Entity, Column, OneToOne, JoinColumn } from 'typeorm';
-import BaseEntity from '../base.entity';
-import Incident from '../incidents/incident.entity';
+import BaseEntity from '../../common/entities/base.entity';
+import { Incident } from '../../incidents/entities/incident.entity';
 
 @Entity('prohibitions')
 export default class Prohibition extends BaseEntity {

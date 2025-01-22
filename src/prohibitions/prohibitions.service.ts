@@ -4,15 +4,15 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import BaseService from '../base.service';
-import Prohibition from './prohibition.entity';
+import Prohibition from './entities/prohibition.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, SelectQueryBuilder } from 'typeorm';
 import DeclareProhibitionDTO from './dto/declare-prohibition.dto';
 import { IncidentsService } from '../incidents/incidents.service';
-import Incident from '../incidents/incident.entity';
+import { Incident } from '../incidents/entities/incident.entity';
 import { InjectQueue } from '@nestjs/bull';
 import { Job, Queue } from 'bull';
-import User from '../auth/user.entity';
+import { User } from '../auth/entities/user.entity';
 import ObtainProhibitionsDTO from './dto/obtain-prohibitions.dto';
 import AlterTimeframeDTO from './dto/alter-timeframe.dto';
 
@@ -21,9 +21,9 @@ export class ProhibitionsService extends BaseService<Prohibition> {
   constructor(
     @InjectRepository(Prohibition)
     prohibitionsRepo: Repository<Prohibition>,
-    private incidentsService: IncidentsService,
     @InjectQueue('prohibitions')
     private prohibitionsQueue: Queue,
+    private incidentsService: IncidentsService,
   ) {
     super(prohibitionsRepo);
   }
@@ -46,7 +46,7 @@ export class ProhibitionsService extends BaseService<Prohibition> {
       );
     } catch (error) {
       throw new InternalServerErrorException(
-        `Error during the prohibition job addition: ${error.message}`,
+        `Error during the prohibition job addition: ${error.message}.`,
       );
     }
   }
@@ -62,7 +62,7 @@ export class ProhibitionsService extends BaseService<Prohibition> {
       await alteredJob.remove();
     } catch (error) {
       throw new InternalServerErrorException(
-        `Error during the prohibition job removal: ${error.message}`,
+        `Error during the prohibition job removal: ${error.message}.`,
       );
     }
   }
@@ -101,7 +101,7 @@ export class ProhibitionsService extends BaseService<Prohibition> {
       await this.repo.insert(prohibition);
     } catch (error) {
       throw new InternalServerErrorException(
-        `Error during the prohibition insertion: ${error.message}`,
+        `Error during the prohibition insertion: ${error.message}.`,
       );
     }
 
@@ -113,7 +113,7 @@ export class ProhibitionsService extends BaseService<Prohibition> {
   async obtainProhibitions(
     user: User,
     obtainProhibitionsDTO: ObtainProhibitionsDTO,
-  ): Promise<Prohibition[]> {
+  ): Promise<{ prohibitions: Prohibition[]; count: number }> {
     const { idOfferee, idOfferor, prohibitedOrder, take } =
       obtainProhibitionsDTO;
 
@@ -155,17 +155,17 @@ export class ProhibitionsService extends BaseService<Prohibition> {
 
     query.take(take);
 
-    let prohibitions: Prohibition[];
+    let records: [Prohibition[], number];
 
     try {
-      prohibitions = await query.getMany();
+      records = await query.getManyAndCount();
     } catch (error) {
       throw new InternalServerErrorException(
         `Error during fetching the prohibitions: ${error.message}`,
       );
     }
 
-    return prohibitions;
+    return { prohibitions: records[0], count: records[1] };
   }
 
   async alterTimeframe(
@@ -190,7 +190,7 @@ export class ProhibitionsService extends BaseService<Prohibition> {
       await this.repo.update(id, { termination });
     } catch (error) {
       throw new InternalServerErrorException(
-        `Error during the prohibition timeframe update: ${error.message}`,
+        `Error during the prohibition timeframe update: ${error.message}.`,
       );
     }
 
@@ -214,7 +214,7 @@ export class ProhibitionsService extends BaseService<Prohibition> {
       await this.repo.delete(id);
     } catch (error) {
       throw new InternalServerErrorException(
-        `Error during the prohibition deletion: ${error.message}`,
+        `Error during the prohibition deletion: ${error.message}.`,
       );
     }
 

@@ -6,17 +6,17 @@ import {
   forwardRef,
 } from '@nestjs/common';
 import BaseService from '../base.service';
-import Incident from './incident.entity';
+import { Incident } from './entities/incident.entity';
+import type { IncidentStatus } from './entities/incident.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, SelectQueryBuilder } from 'typeorm';
-import User from '../auth/user.entity';
+import { User } from '../auth/entities/user.entity';
 import OpenIncidentDTO from './dto/open-incident.dto';
-import { ReservationsService } from '../reservations/reservations.service';
-import Reservation from '../reservations/reservation.entity';
+import { ReservationsService } from 'src/reservations/reservations.service';
+import Reservation from '../reservations/entities/reservation.entity';
 import ObtainIncidentsDTO from './dto/obtain-incidents.dto';
 import RenameIncidentDTO from './dto/rename-incident.dto';
 import AlterIncidentStatusDTO from './dto/alter-incident-status.dto';
-import IncidentStatus from './types';
 
 @Injectable()
 export class IncidentsService extends BaseService<Incident> {
@@ -51,7 +51,7 @@ export class IncidentsService extends BaseService<Incident> {
       await this.repo.insert(incident);
     } catch (error) {
       throw new InternalServerErrorException(
-        `Error during the incident insertion: ${error.message}`,
+        `Error during the incident insertion: ${error.message}.`,
       );
     }
 
@@ -63,7 +63,7 @@ export class IncidentsService extends BaseService<Incident> {
   async obtainIncidents(
     idReservation: string,
     obtainIncidentsDTO: ObtainIncidentsDTO,
-  ): Promise<Incident[]> {
+  ): Promise<{ incidents: Incident[]; count: number }> {
     const { status } = obtainIncidentsDTO;
 
     const query: SelectQueryBuilder<Incident> =
@@ -73,17 +73,19 @@ export class IncidentsService extends BaseService<Incident> {
 
     if (status) query.andWhere('status = :status', { status });
 
+    let records: [Incident[], number];
+
     let incidents: Incident[];
 
     try {
-      incidents = await query.getMany();
+      records = await query.getManyAndCount();
     } catch (error) {
       throw new InternalServerErrorException(
-        `Error during fetching the incidents: ${error.message}`,
+        `Error during fetching the incidents: ${error.message}.`,
       );
     }
 
-    return incidents;
+    return { incidents: records[0], count: records[1] };
   }
 
   async renameIncident(
@@ -98,7 +100,7 @@ export class IncidentsService extends BaseService<Incident> {
       await this.repo.update({ id }, { title });
     } catch (error) {
       throw new InternalServerErrorException(
-        `Error during renaming the incident: ${error.message}`,
+        `Error during renaming the incident: ${error.message}.`,
       );
     }
 
@@ -124,7 +126,7 @@ export class IncidentsService extends BaseService<Incident> {
       await this.repo.update(id, { status });
     } catch (error) {
       throw new InternalServerErrorException(
-        `Error during the incident status update: ${error.message}`,
+        `Error during the incident status update: ${error.message}.`,
       );
     }
 

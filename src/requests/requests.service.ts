@@ -6,26 +6,30 @@ import {
   forwardRef,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import Request from './request.entity';
-import { Repository } from 'typeorm';
+import Request from './entities/request.entity';
+import { DataSource, QueryRunner, Repository } from 'typeorm';
 import BaseService from '../base.service';
-import User from '../auth/user.entity';
+import { User } from '../auth/entities/user.entity';
 import MakeRequestDTO from './dto/make-request.dto';
-import { OfferorsService } from '../offerors/offerors.service';
-import Offeror from '../offerors/offeror.entity';
+import { OfferorsService } from 'src/offerors/offerors.service';
 import ObtainRequestsDTO from './dto/obtain-requests.dto';
 import AmendRequestProvisionsDTO from './dto/amend-request-provisions.dto';
 import AssessReservationTimeDTO from './dto/assess-reservation-time.dto';
 import { ReservationsService } from '../reservations/reservations.service';
-import Offeree from '../offerees/offeree.entity';
-import { OffereesService } from '../offerees/offerees.service';
-import Reservation from '../reservations/reservation.entity';
+import Offeree from '../offerees/entities/offeree.entity';
+import { OffereesService } from 'src/offerees/offerees.service';
+import Reservation from '../reservations/entities/reservation.entity';
+import ServiceToRequest from './entities/service-to-request.entity';
+import ServiceToOfferor from '../offerors/entities/service-to-offeror.entity';
 
 @Injectable()
 export class RequestsService extends BaseService<Request> {
   constructor(
+    private dataSource: DataSource,
     @InjectRepository(Request)
     requestsRepo: Repository<Request>,
+    @InjectRepository(ServiceToRequest)
+    private requestServicesRepo: Repository<ServiceToRequest>,
     @Inject(forwardRef(() => OffereesService))
     private offereesService: OffereesService,
     @Inject(forwardRef(() => OfferorsService))
@@ -40,33 +44,69 @@ export class RequestsService extends BaseService<Request> {
     user: User,
     makeRequestDTO: MakeRequestDTO,
   ): Promise<{ id: string }> {
-    const { service, note, requestedFor, idOfferor } = makeRequestDTO;
-
-    const offeror: Offeror = await this.offerorsService.obtainOneBy({
-      id: idOfferor,
-    });
+    const { note, requestedFor, idOfferorService, amount } = makeRequestDTO;
 
     const offeree: Offeree = await this.offereesService.obtainOneBy({
       user: { username: user.username },
     });
 
     const request: Request = this.repo.create({
-      service: JSON.parse(service),
       note,
       requestedFor,
-      offeror,
       offeree,
     });
 
+    let offerorService: ServiceToOfferor;
+
     try {
-      await this.repo.insert(request);
+      offerorService =
+        await this.offerorsService.obtainOfferorService(idOfferorService);
     } catch (error) {
       throw new InternalServerErrorException(
-        `Error during the request insertion: ${error.message}`,
+        `Error during fetching the offeror's service identified with ${idOfferorService}: ${error.message}.`,
       );
     }
 
+    const queryRunner: QueryRunner = this.dataSource.createQueryRunner();
+
+    const requestedService: ServiceToRequest = this.requestServicesRepo.create({
+      request,
+      amount,
+      serviceToOfferor: offerorService,
+    });
+
+    request.services = [requestedService];
+
+    try {
+      await queryRunner.connect();
+      await queryRunner.startTransaction();
+
+      const requestInsertResult = await queryRunner.manager.insert(
+        Request,
+        request,
+      );
+
+      await queryRunner.manager.insert(ServiceToRequest, {
+        ...requestedService,
+        request: { ...request, id: requestInsertResult.identifiers[0].id },
+      });
+
+      await queryRunner.commitTransaction();
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+
+      throw new InternalServerErrorException(
+        `Error during the request and belonging services insertion: ${error.message}.`,
+      );
+    } finally {
+      await queryRunner.release();
+    }
+
     this.dataLoggerService.create(request.constructor.name, request.id);
+    this.dataLoggerService.create(
+      requestedService.constructor.name,
+      requestedService.id,
+    );
 
     return { id: request.id };
   }
@@ -74,13 +114,13 @@ export class RequestsService extends BaseService<Request> {
   async obtainRequests(
     user: User,
     obtainRequestsDTO: ObtainRequestsDTO,
-  ): Promise<Request[]> {
+  ): Promise<{ requests: Request[]; count: number }> {
     const { requestedOrder, take } = obtainRequestsDTO;
 
-    let requests: Request[];
+    let records: [Request[], number];
 
     try {
-      requests = await this.repo.find(
+      records = await this.repo.findAndCount(
         user.privilege === 'OFFEREE'
           ? {
               where: {
@@ -90,18 +130,24 @@ export class RequestsService extends BaseService<Request> {
               take,
             }
           : user.privilege === 'OFFEROR' && {
-              where: { offeror: { user: { username: user.username } } },
+              where: {
+                services: {
+                  serviceToOfferor: {
+                    offeror: { user: { username: user.username } },
+                  },
+                },
+              },
               order: { requestedAt: requestedOrder },
               take,
             },
       );
     } catch (error) {
       throw new InternalServerErrorException(
-        `Error during fetching the requests: ${error.message}`,
+        `Error during fetching the requests: ${error.message}.`,
       );
     }
 
-    return requests;
+    return { requests: records[0], count: records[1] };
   }
 
   async amendRequestProvisions(
@@ -116,14 +162,14 @@ export class RequestsService extends BaseService<Request> {
       await this.repo.update({ id }, { note });
     } catch (error) {
       throw new InternalServerErrorException(
-        `Error during the request note update: ${error.message}`,
+        `Error during the request note update: ${error.message}.`,
       );
     }
 
     this.dataLoggerService.update(
       request.constructor.name,
       request.id,
-      `{ note: ${request.note} } => { note: ${note} }`,
+      `note: ${request.note} => note: ${note}`,
     );
 
     return { id: request.id };
@@ -141,14 +187,14 @@ export class RequestsService extends BaseService<Request> {
       await this.repo.update({ id }, { assessment });
     } catch (error) {
       throw new InternalServerErrorException(
-        `Error during the request assessment update: ${error.message}`,
+        `Error during the request assessment update: ${error.message}.`,
       );
     }
 
     this.dataLoggerService.update(
       request.constructor.name,
       request.id,
-      `{ assessment: ${request.assessment} } => { assessment: ${assessment} }`,
+      `assessment: ${request.assessment} => assessment: ${assessment}`,
     );
 
     return { id: request.id };
@@ -173,6 +219,8 @@ export class RequestsService extends BaseService<Request> {
         });
       } catch (error) {
         try {
+          await this.requestServicesRepo.delete({ request: { id } });
+
           await this.repo.delete(id);
 
           this.dataLoggerService.delete(request.constructor.name, id);
@@ -180,7 +228,7 @@ export class RequestsService extends BaseService<Request> {
           return { id: request.id };
         } catch (error) {
           throw new InternalServerErrorException(
-            `Error during the request deletion: ${error.message}`,
+            `Error during the request deletion: ${error.message}.`,
           );
         }
       }
@@ -190,5 +238,17 @@ export class RequestsService extends BaseService<Request> {
       throw new ConflictException(
         `Cannot delete ${id} request due to already reserved.`,
       );
+  }
+
+  async revokeRequestsForService(idOfferorService: string): Promise<void> {
+    try {
+      await this.requestServicesRepo.delete({
+        serviceToOfferor: { id: idOfferorService },
+      });
+    } catch (error) {
+      throw new InternalServerErrorException(
+        `Error during the requests services deletion: ${error.message}.`,
+      );
+    }
   }
 }

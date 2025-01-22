@@ -1,14 +1,14 @@
 import { Entity, Column, OneToOne, JoinColumn, OneToMany } from 'typeorm';
-import BaseEntity from '../base.entity';
-import User from '../auth/user.entity';
-import Request from '../requests/request.entity';
+import BaseEntity from '../../common/entities/base.entity';
+import { User } from '../../auth/entities/user.entity';
+import Request from '../../requests/entities/request.entity';
 
 @Entity('offerees')
 export default class Offeree extends BaseEntity {
-  @Column({ type: 'varchar', length: 35 })
+  @Column({ type: 'text' })
   name: string;
 
-  @Column({ type: 'varchar', length: 35 })
+  @Column({ type: 'text' })
   surname: string;
 
   @Column({ type: 'varchar', length: 254 })

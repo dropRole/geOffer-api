@@ -7,12 +7,16 @@ import {
   IsString,
   MinLength,
   Matches,
+  IsIn,
 } from 'class-validator';
 
 export default class RecordOfferorDTO {
+  @IsString()
   @IsNotEmpty()
-  @MaxLength(100)
   name: string;
+
+  @IsIn(['Restaurant', 'Café/ Pub', 'Movie Theater'])
+  category: string;
 
   @IsJSON()
   address: string;
@@ -27,9 +31,6 @@ export default class RecordOfferorDTO {
   @IsEmail()
   @MaxLength(254)
   email: string;
-
-  @IsJSON()
-  service: string;
 
   @IsOptional()
   @IsString()

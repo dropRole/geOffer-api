@@ -8,11 +8,11 @@ import {
   Param,
 } from '@nestjs/common';
 import { ReservationsService } from './reservations.service';
-import { PrivilegedRoute } from '../auth/privileged-route.decorator';
-import ExtractUser from '../auth/extract-user.decorator';
-import User from '../auth/user.entity';
+import { PrivilegedRoute } from '../common/decorators/privileged-route.decorator';
+import CurrentUser from '../auth/current-user.decorator';
+import { User } from '../auth/entities/user.entity';
 import MakeReservationDTO from './dto/make-reservation.dto';
-import Reservation from './reservation.entity';
+import Reservation from './entities/reservation.entity';
 import ObtainReservationsDTO from './dto/obtain-reservations.dto';
 
 @Controller('reservations')
@@ -30,9 +30,9 @@ export class ReservationsController {
   @Get()
   @PrivilegedRoute('SUPERUSER', 'OFFEREE', 'OFFEROR')
   obtainReservations(
-    @ExtractUser() user: User,
+    @CurrentUser() user: User,
     @Query() obtainReservationsDTO: ObtainReservationsDTO,
-  ): Promise<Reservation[]> {
+  ): Promise<{ reservations: Reservation[]; count: number }> {
     return this.reservationsService.obtainReservations(
       user,
       obtainReservationsDTO,

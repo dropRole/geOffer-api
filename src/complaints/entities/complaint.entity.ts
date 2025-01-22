@@ -6,9 +6,9 @@ import {
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
-import BaseEntity from '../base.entity';
-import User from '../auth/user.entity';
-import Incident from '../incidents/incident.entity';
+import BaseEntity from '../../common/entities/base.entity';
+import { User } from '../../auth/entities/user.entity';
+import { Incident } from '../../incidents/entities/incident.entity';
 
 @Entity('complaints')
 @Index(['author', 'incident'])
@@ -16,7 +16,7 @@ export default class Complaint extends BaseEntity {
   @Column({ type: 'text' })
   content: string;
 
-  @Column({ type: 'timestamp', default: 'NOW' })
+  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   written: string;
 
   @Column({ type: 'timestamp', nullable: true })

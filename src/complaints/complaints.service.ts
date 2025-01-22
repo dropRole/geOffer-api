@@ -1,20 +1,21 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import BaseService from '../base.service';
-import Complaint from './complaint.entity';
+import Complaint from './entities/complaint.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, Repository, SelectQueryBuilder } from 'typeorm';
-import User from '../auth/user.entity';
+import { Repository } from 'typeorm';
+import { User } from '../auth/entities/user.entity';
 import WriteComplaintDTO from './dto/write-complaint.dto';
-import Incident from '../incidents/incident.entity';
+import { Incident } from '../incidents/entities/incident.entity';
 import ObtainComplaintsDTO from './dto/obtain-complaints.dto';
 import RewriteComplaintDTO from './dto/rewrite-complaint.dto';
+import { IncidentsService } from '../incidents/incidents.service';
 
 @Injectable()
 export class ComplaintsService extends BaseService<Complaint> {
   constructor(
     @InjectRepository(Complaint)
     complaintsRepo: Repository<Complaint>,
-    private dataSource: DataSource,
+    private incidentsService: IncidentsService,
   ) {
     super(complaintsRepo);
   }
@@ -25,29 +26,22 @@ export class ComplaintsService extends BaseService<Complaint> {
   ): Promise<{ id: string }> {
     const { idIncident, idCounteredComplaint, content } = writeComplaintDTO;
 
-    const query: SelectQueryBuilder<Incident> =
-      this.dataSource.createQueryBuilder(Incident, 'incident');
-    query.innerJoinAndSelect('incident.reservation', 'reservation');
-    query.innerJoinAndSelect('reservation.request', 'request');
-    query.innerJoinAndSelect('request.offeree', 'offeree');
-    query.innerJoinAndSelect('offeree.user', 'offereeUser');
-    query.innerJoinAndSelect('request.offeror', 'offeror');
-    query.innerJoinAndSelect('offeror.user', 'offerorUser');
-    query.where('incident.id = :idIncident', { idIncident });
-
     let incident: Incident;
 
     try {
-      incident = await query.getOne();
+      incident = await this.incidentsService.obtainOneBy({ id: idIncident });
     } catch (error) {
       throw new InternalServerErrorException(
-        `Error during fetching the incident to which the complaint belongs: ${error.message}`,
+        `Error during fetching the incident to which the complaint belongs: ${error.message}.`,
       );
     }
 
-    const counteredComplaint: Complaint = await this.obtainOneBy({
-      id: idCounteredComplaint,
-    });
+    let counteredComplaint: Complaint;
+
+    if (idCounteredComplaint)
+      counteredComplaint = await this.obtainOneBy({
+        id: idCounteredComplaint,
+      });
 
     const complaint: Complaint = this.repo.create({
       incident,
@@ -60,7 +54,7 @@ export class ComplaintsService extends BaseService<Complaint> {
       await this.repo.insert(complaint);
     } catch (error) {
       throw new InternalServerErrorException(
-        `Error during the complaint insertion: ${error.message}`,
+        `Error during the complaint insertion: ${error.message}.`,
       );
     }
 
@@ -72,34 +66,24 @@ export class ComplaintsService extends BaseService<Complaint> {
   async obtainComplaints(
     idIncident: string,
     obtainComplaintsDTO: ObtainComplaintsDTO,
-  ): Promise<Complaint[]> {
-    const query: SelectQueryBuilder<Incident> =
-      this.dataSource.createQueryBuilder(Incident, 'incident');
-    query.innerJoinAndSelect('incident.reservation', 'reservation');
-    query.innerJoinAndSelect('reservation.request', 'request');
-    query.innerJoinAndSelect('request.offeree', 'offeree');
-    query.innerJoinAndSelect('offeree.user', 'offereeUser');
-    query.innerJoinAndSelect('request.offeror', 'offeror');
-    query.innerJoinAndSelect('offeror.user', 'offerorUser');
-    query.where('incident.id = :idIncident', { idIncident });
-
+  ): Promise<{ complaints: Complaint[]; count: number }> {
     const { writtenOrder, take } = obtainComplaintsDTO;
 
-    let complaints: Complaint[];
+    let records: [Complaint[], number];
 
     try {
-      complaints = await this.repo.find({
+      records = await this.repo.findAndCount({
         where: { incident: { id: idIncident } },
         order: { written: writtenOrder },
         take,
       });
     } catch (error) {
       throw new InternalServerErrorException(
-        `Error during fetching the complaints: ${error.message}`,
+        `Error during fetching the complaints: ${error.message}.`,
       );
     }
 
-    return complaints;
+    return { complaints: records[0], count: records[1] };
   }
 
   async rewriteComplaint(
@@ -116,7 +100,7 @@ export class ComplaintsService extends BaseService<Complaint> {
       await this.repo.update(id, { content });
     } catch (error) {
       throw new InternalServerErrorException(
-        `Error during the complaint content update: ${error.message}`,
+        `Error during the complaint content update: ${error.message}.`,
       );
     }
 
@@ -138,7 +122,7 @@ export class ComplaintsService extends BaseService<Complaint> {
       await this.repo.delete(id);
     } catch (error) {
       throw new InternalServerErrorException(
-        `Error during the complaint deletion: ${error.message}`,
+        `Error during the complaint deletion: ${error.message}.`,
       );
     }
 

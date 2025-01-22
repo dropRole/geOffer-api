@@ -1,10 +1,10 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import Offeree from './offeree.entity';
+import Offeree from './entities/offeree.entity';
 import { SelectQueryBuilder, Repository } from 'typeorm';
 import BaseService from '../base.service';
 import ObtainOffereesDTO from './dto/obtain-offerees.dto';
-import User from '../auth/user.entity';
+import { User } from '../auth/entities/user.entity';
 import AmendBasicsDTO from './dto/amend-basics.dto';
 
 @Injectable()
@@ -18,34 +18,37 @@ export class OffereesService extends BaseService<Offeree> {
 
   async obtainOfferees(
     obtainOffereesDTO: ObtainOffereesDTO,
-  ): Promise<Offeree[]> {
+  ): Promise<{ offerees: Offeree[]; count: number }> {
     const { fullname, requestsMade, take } = obtainOffereesDTO;
 
     const queryBuilder: SelectQueryBuilder<Offeree> =
       this.repo.createQueryBuilder('offeree');
     queryBuilder.leftJoin('offeree.requests', 'request');
-    queryBuilder.addSelect('COUNT(request.*)', "'requestsMade'");
+    queryBuilder.addSelect('COUNT(request.*)', 'requestsMade');
     queryBuilder.where('UPPER(name || surname) LIKE UPPER(:fullname)', {
-      fullname: `%${fullname}%`,
+      fullname: `${fullname.replace(/\s/g, '')}%`,
     });
 
-    if (requestsMade) queryBuilder.orderBy("'requestsMade'");
+    if (requestsMade) queryBuilder.orderBy('requestsMade');
 
     queryBuilder.take(take);
 
     queryBuilder.groupBy('offeree.id');
 
-    let offerees: Offeree[];
+    let offerees: Offeree[],
+      count = 0;
 
     try {
       offerees = await queryBuilder.execute();
+
+      count = await this.repo.count();
     } catch (error) {
       throw new InternalServerErrorException(
-        `Error during fetching the offerees: ${error.message}`,
+        `Error during fetching the offerees: ${error.message}.`,
       );
     }
 
-    return offerees;
+    return { offerees: offerees, count };
   }
 
   async claimBasics(
@@ -68,7 +71,7 @@ export class OffereesService extends BaseService<Offeree> {
       );
     } catch (error) {
       throw new InternalServerErrorException(
-        `Error during the offeree basics update: ${error.message}`,
+        `Error during the offeree basics update: ${error.message}.`,
       );
     }
 
@@ -79,7 +82,15 @@ export class OffereesService extends BaseService<Offeree> {
     this.dataLoggerService.update(
       offeree.constructor.name,
       offeree.id,
-      `{ name: ${offeree.name}, surname: ${offeree.surname}, email: ${offeree.email} } => { name: ${name}, surname: ${surname}, email: ${email} }`,
+      `{ 
+          name: ${offeree.name},
+          surname: ${offeree.surname},
+          email: ${offeree.email} 
+       } => 
+       { name: ${name},
+          surname: ${surname},
+          email: ${email} 
+       }`,
     );
   }
 }

@@ -4,15 +4,16 @@ import {
   IsEmail,
   MinLength,
   Matches,
+  IsString,
 } from 'class-validator';
 
 export default class SignupDTO {
+  @IsString()
   @IsNotEmpty()
-  @MaxLength(35)
   name: string;
 
+  @IsString()
   @IsNotEmpty()
-  @MaxLength(35)
   surname: string;
 
   @IsEmail()

@@ -1,11 +1,11 @@
 import { Entity, Column, OneToOne, JoinColumn, OneToMany } from 'typeorm';
-import BaseEntity from '../base.entity';
-import Request from '../requests/request.entity';
-import Incident from '../incidents/incident.entity';
+import BaseEntity from '../../common/entities/base.entity';
+import Request from '../../requests/entities/request.entity';
+import { Incident } from '../../incidents/entities/incident.entity';
 
 @Entity('reservations')
 export default class Reservation extends BaseEntity {
-  @Column({ type: 'timestamp', default: 'NOW' })
+  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   reserved: string;
 
   @Column({ type: 'varchar', length: 15 })

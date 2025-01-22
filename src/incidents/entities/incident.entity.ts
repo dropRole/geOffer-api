@@ -7,23 +7,24 @@ import {
   JoinColumn,
   OneToMany,
 } from 'typeorm';
-import BaseEntity from '../base.entity';
-import IncidentStatus from './types';
-import User from '../auth/user.entity';
-import Reservation from '../reservations/reservation.entity';
-import Complaint from '../complaints/complaint.entity';
+import BaseEntity from '../../common/entities/base.entity';
+import { User } from '../../auth/entities/user.entity';
+import Reservation from '../../reservations/entities/reservation.entity';
+import Complaint from '../../complaints/entities/complaint.entity';
+
+export type IncidentStatus = 'PENDING' | 'RESOLVED' | 'REJECTED';
 
 @Entity('incidents')
 @Index(['openedBy', 'reservation'])
-export default class Incident extends BaseEntity {
-  @Column({ type: 'varchar', length: 100 })
+export class Incident extends BaseEntity {
+  @Column({ type: 'text' })
   title: string;
 
   @Check("status IN('PENDING', 'RESOLVED', 'REJECTED')")
   @Column({ type: 'varchar', length: 8, default: 'PENDING' })
   status: IncidentStatus;
 
-  @Column({ type: 'timestamp', default: 'NOW' })
+  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   opened: string;
 
   @Column({ type: 'text', nullable: true })

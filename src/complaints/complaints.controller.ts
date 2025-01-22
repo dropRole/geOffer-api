@@ -9,11 +9,11 @@ import {
   Query,
 } from '@nestjs/common';
 import { ComplaintsService } from './complaints.service';
-import { PrivilegedRoute } from '../auth/privileged-route.decorator';
-import ExtractUser from '../auth/extract-user.decorator';
-import User from '../auth/user.entity';
+import { PrivilegedRoute } from '../common/decorators/privileged-route.decorator';
+import CurrentUser from '../auth/current-user.decorator';
+import { User } from '../auth/entities/user.entity';
 import WriteComplaintDTO from './dto/write-complaint.dto';
-import Complaint from './complaint.entity';
+import Complaint from './entities/complaint.entity';
 import ObtainComplaintsDTO from './dto/obtain-complaints.dto';
 import RewriteComplaintDTO from './dto/rewrite-complaint.dto';
 
@@ -24,7 +24,7 @@ export class ComplaintsController {
   @Post()
   @PrivilegedRoute('OFFEREE', 'OFFEROR')
   writeComplaint(
-    @ExtractUser() user: User,
+    @CurrentUser() user: User,
     @Body() writeComplaintDTO: WriteComplaintDTO,
   ): Promise<{ id: string }> {
     return this.complaintsService.writeComplaint(user, writeComplaintDTO);
@@ -35,7 +35,7 @@ export class ComplaintsController {
   obtainComplaints(
     @Param('idIncident') idIncident: string,
     @Query() obtainComplaintsDTO: ObtainComplaintsDTO,
-  ): Promise<Complaint[]> {
+  ): Promise<{ complaints: Complaint[]; count: number }> {
     return this.complaintsService.obtainComplaints(
       idIncident,
       obtainComplaintsDTO,

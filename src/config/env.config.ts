@@ -1,3 +1,4 @@
+import { ConfigModuleOptions } from '@nestjs/config';
 import * as Joi from 'joi';
 
 const EnvConfigValidationSchema: Joi.ObjectSchema = Joi.object({
@@ -11,7 +12,18 @@ const EnvConfigValidationSchema: Joi.ObjectSchema = Joi.object({
   REDIS_HOST: Joi.string().default('localhost'),
   JWT_SECRET: Joi.string().required(),
   JWT_EXPIRE: Joi.number().required(),
+  JWT_REFRESH_SECRET: Joi.string().required(),
+  JWT_REFRESH_EXPIRE: Joi.number().required(),
   LOCATIONIQ_API_KEY: Joi.string().required(),
+  AWS_S3_ACCESS_KEY: Joi.string().required(),
+  AWS_S3_SECRET_ACCESS_KEY: Joi.string().required(),
+  AWS_S3_BUCKET: Joi.string().required(),
+  AWS_S3_BUCKET_URL: Joi.string().required(),
 });
 
-export default EnvConfigValidationSchema;
+const EnvConfig: ConfigModuleOptions = {
+  validationSchema: EnvConfigValidationSchema,
+  envFilePath: `.env.stage.${process.env.STAGE}`,
+};
+
+export default EnvConfig;

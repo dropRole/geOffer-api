@@ -9,19 +9,32 @@ import {
   UseInterceptors,
   UploadedFiles,
   Delete,
+  ParseFilePipe,
+  FileTypeValidator,
+  UploadedFile,
 } from '@nestjs/common';
 import { OfferorsService } from './offerors.service';
-import { PrivilegedRoute } from '../auth/privileged-route.decorator';
+import { PrivilegedRoute } from '../common/decorators/privileged-route.decorator';
 import RecordOfferorDTO from './dto/record-offeror.dto';
-import Offeror from './offeror.entity';
+import { Offeror } from './entities/offeror.entity';
 import ObtainOfferorsDTO from './dto/obtain-offerors.dto';
-import ExtractUser from '../auth/extract-user.decorator';
-import { OfferorReputation } from './types';
+import CurrentUser from 'src/auth/current-user.decorator';
+import { OfferorReputation } from './entities/offeror.entity';
 import AmendBusinessInfoDTO from './dto/amend-business-info.dto';
 import AlterReputationDTO from './dto/alter-reputation.dto';
-import User from '../auth/user.entity';
-import { FileFieldsInterceptor } from '@nestjs/platform-express';
+import { User } from '../auth/entities/user.entity';
+import {
+  FileFieldsInterceptor,
+  FileInterceptor,
+  FilesInterceptor,
+} from '@nestjs/platform-express';
 import { DeleteGalleryImagesDTO } from './dto/delete-gallery-images.dto';
+import { AddEventDTO } from './dto/add-event.dto';
+import { DeleteEventsDTO } from './dto/delete-events.dto';
+import { ProvideServiceDTO } from './dto/provide-service.dto';
+import { AlterServiceInfoDTO } from './dto/alter-service-info.dto';
+import { DeleteServicesDTO } from './dto/delete-services-products.dto';
+import { AmendEventInfoDTO } from './dto/amend-event.info.dto';
 
 @Controller('offerors')
 export class OfferorsController {
@@ -38,46 +51,69 @@ export class OfferorsController {
   recordOfferor(
     @Body() recordOfferorDTO: RecordOfferorDTO,
     @UploadedFiles()
-    files: { highlight: Express.Multer.File; gallery: Express.Multer.File[] },
+    images: { highlight: Express.Multer.File; gallery: Express.Multer.File[] },
   ): Promise<{ id: string; uploadResults: string }> {
-    return this.offerorsService.recordOfferor(recordOfferorDTO, files);
+    return this.offerorsService.recordOfferor(recordOfferorDTO, images);
+  }
+
+  @Post('/services')
+  @PrivilegedRoute('OFFEROR')
+  provideService(
+    @CurrentUser() user: User,
+    @Body() provideServiceDTO: ProvideServiceDTO,
+  ): Promise<void> {
+    return this.offerorsService.provideService(user, provideServiceDTO);
   }
 
   @Post('/images/gallery')
   @PrivilegedRoute('OFFEROR')
-  @UseInterceptors(FileFieldsInterceptor([{ name: 'gallery', maxCount: 10 }]))
+  @UseInterceptors(FilesInterceptor('gallery', 10))
   addGalleryImages(
-    @ExtractUser() user: User,
+    @CurrentUser() user: User,
     @UploadedFiles()
-    files: {
-      gallery: Express.Multer.File[];
-    },
+    images: Express.Multer.File[],
   ): Promise<{ uploadResults: string }> {
-    return this.offerorsService.addGalleryImages(user, files);
+    return this.offerorsService.addGalleryImages(user, images);
+  }
+
+  @Post('/events')
+  @PrivilegedRoute('OFFEROR')
+  @UseInterceptors(FileInterceptor('image'))
+  addEvent(
+    @CurrentUser() user: User,
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [new FileTypeValidator({ fileType: 'image/*' })],
+      }),
+    )
+    image: Express.Multer.File,
+    @Body() addEventDTO: AddEventDTO,
+  ): Promise<{ id: string; uploadResult: string }> {
+    return this.offerorsService.addEvent(user, image, addEventDTO);
   }
 
   @Get()
   @PrivilegedRoute('SUPERUSER', 'OFFEREE')
-  obtainOfferors(
-    @Query() obtainOfferorsDTO: ObtainOfferorsDTO,
-  ): Promise<Record<any, any>[]> {
+  obtainOfferors(@Query() obtainOfferorsDTO: ObtainOfferorsDTO): Promise<{
+    offerors: (Offeror & { reservationsMade?: number })[];
+    count: number;
+  }> {
     return this.offerorsService.obtainOfferors(obtainOfferorsDTO);
   }
 
   @Get('/business-info')
   @PrivilegedRoute('OFFEROR')
   claimBusinessInfo(
-    @ExtractUser() user: User,
+    @CurrentUser() user: User,
   ): Promise<
-    Omit<
+    Pick<
       Offeror,
-      | 'id'
+      | 'name'
+      | 'address'
       | 'coordinates'
-      | 'reputation'
-      | 'user'
-      | 'requests'
-      | 'images'
-      | 'events'
+      | 'telephone'
+      | 'email'
+      | 'businessHours'
     >
   > {
     return this.offerorsService.claimBusinessInfo(user);
@@ -85,14 +121,14 @@ export class OfferorsController {
 
   @Get('/reputation')
   @PrivilegedRoute('OFFEROR')
-  claimReputation(@ExtractUser() user: User): Promise<OfferorReputation> {
-    return this.offerorsService.claimReputation(user);
+  claimReputation(@CurrentUser() user: User): Promise<OfferorReputation> {
+    return;
   }
 
   @Patch('/business-info')
   @PrivilegedRoute('OFFEROR')
   amendBusinessInfo(
-    @ExtractUser() user: User,
+    @CurrentUser() user: User,
     @Body() amendBusinessInfoDTO: AmendBusinessInfoDTO,
   ): Promise<void> {
     return this.offerorsService.amendBusinessInfo(user, amendBusinessInfoDTO);
@@ -107,17 +143,58 @@ export class OfferorsController {
     return this.offerorsService.alterReputation(id, alterReputationDTO);
   }
 
+  @Patch('/services/:idService/info')
+  @PrivilegedRoute('OFFEROR')
+  alterServiceInfo(
+    @CurrentUser() user: User,
+    @Param('idService') idService: string,
+    @Body()
+    alterServiceInfoDTO: AlterServiceInfoDTO,
+  ): Promise<void> {
+    return this.offerorsService.alterServiceInfo(
+      user,
+      idService,
+      alterServiceInfoDTO,
+    );
+  }
+
   @Patch('/images/highlight')
   @PrivilegedRoute('OFFEROR')
-  @UseInterceptors(FileFieldsInterceptor([{ name: 'highlight', maxCount: 1 }]))
+  @UseInterceptors(FileInterceptor('image'))
   changeHighlightImage(
-    @ExtractUser() user: User,
-    @UploadedFiles()
-    files: {
-      highlight: Express.Multer.File;
-    },
+    @CurrentUser() user: User,
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [new FileTypeValidator({ fileType: 'image/*' })],
+      }),
+    )
+    image: Express.Multer.File,
   ): Promise<{ changeResult: string }> {
-    return this.offerorsService.changeHighlightImage(user, files);
+    return this.offerorsService.changeHighlightImage(user, image);
+  }
+
+  @Patch('/events/:idEvent/info')
+  @PrivilegedRoute('OFFEROR')
+  amendEventInfo(
+    @Param('idEvent') idEvent: string,
+    @Body() amendEventInfoDTO: AmendEventInfoDTO,
+  ): Promise<void> {
+    return this.offerorsService.amendEventInfo(idEvent, amendEventInfoDTO);
+  }
+
+  @Patch('/events/:idEvent/image')
+  @PrivilegedRoute('OFFEROR')
+  @UseInterceptors(FileInterceptor('image'))
+  changeEventImage(
+    @Param('idEvent') idEvent: string,
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [new FileTypeValidator({ fileType: 'image/*' })],
+      }),
+    )
+    image: Express.Multer.File,
+  ): Promise<{ changeResult: string }> {
+    return this.offerorsService.changeEventImage(idEvent, image);
   }
 
   @Delete('/images/gallery')
@@ -126,5 +203,22 @@ export class OfferorsController {
     @Body() deleteGalleryImagesDTO: DeleteGalleryImagesDTO,
   ): Promise<{ deleteResults: string }> {
     return this.offerorsService.deleteGalleryImages(deleteGalleryImagesDTO);
+  }
+
+  @Delete('/services')
+  @PrivilegedRoute('OFFEROR')
+  deleteServices(
+    @CurrentUser() user: User,
+    @Body() deleteServicesDTO: DeleteServicesDTO,
+  ): Promise<{ affectedRecords: number }> {
+    return this.offerorsService.deleteServices(user, deleteServicesDTO);
+  }
+
+  @Delete('/events')
+  @PrivilegedRoute('OFFEROR')
+  deleteEvents(
+    @Body() deleteEventsDTO: DeleteEventsDTO,
+  ): Promise<{ deleteResults: string }> {
+    return this.offerorsService.deleteEvents(deleteEventsDTO);
   }
 }

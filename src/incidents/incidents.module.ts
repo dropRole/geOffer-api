@@ -2,7 +2,7 @@ import { Module, forwardRef } from '@nestjs/common';
 import { IncidentsController } from './incidents.controller';
 import { IncidentsService } from './incidents.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import Incident from './incident.entity';
+import { Incident } from './entities/incident.entity';
 import { ReservationsModule } from 'src/reservations/reservations.module';
 
 @Module({

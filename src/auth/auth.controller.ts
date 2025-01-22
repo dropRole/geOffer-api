@@ -1,14 +1,24 @@
-import { Body, Controller, Post, Get, Param, Patch } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Post,
+  Get,
+  Param,
+  Patch,
+  UseGuards,
+  Res,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import SignupDTO from './dto/signup.dto';
-import { PublicRoute } from './public-route.decorator';
-import { Token } from './types';
+import { PublicRoute } from '../common/decorators/public-route.decorator';
 import LoginDTO from './dto/login.dto';
-import { PrivilegedRoute } from './privileged-route.decorator';
-import User from './user.entity';
-import ExtractUser from './extract-user.decorator';
+import { PrivilegedRoute } from '../common/decorators/privileged-route.decorator';
+import { User } from './entities/user.entity';
+import CurrentUser from './current-user.decorator';
 import AlterUsernameDTO from './dto/alter-username.dto';
 import AlterPasswordDTO from './dto/alter-password.dto';
+import JwtRefreshGuard from 'src/common/guards/jwt-refresh.guard';
+import { Response } from 'express';
 
 @Controller('auth')
 export class AuthController {
@@ -22,20 +32,27 @@ export class AuthController {
 
   @Post('/login')
   @PublicRoute()
-  login(@Body() loginDTO: LoginDTO): Promise<Token> {
-    return this.authService.login(loginDTO);
+  login(
+    @Body() loginDTO: LoginDTO,
+    @Res({ passthrough: true }) response: Response,
+  ): Promise<void> {
+    return this.authService.login(loginDTO, response);
   }
 
-  @Get('/:username/token')
+  @Post('/refresh-token')
+  @UseGuards(JwtRefreshGuard)
   @PublicRoute()
-  signToken(@Param('username') username: string): Promise<Token> {
-    return this.authService.signToken(username);
+  refreshToken(
+    @CurrentUser() user: User,
+    @Res({ passthrough: true }) response: Response,
+  ): Promise<void> {
+    return this.authService.refreshToken(user, response);
   }
 
   @Get('/basics')
   @PrivilegedRoute('SUPERUSER', 'OFFEREE', 'OFFEROR')
   claimBasics(
-    @ExtractUser() user: User,
+    @CurrentUser() user: User,
   ): Omit<User, 'password' | 'incidents' | 'complaints'> {
     return {
       username: user.username,
@@ -47,16 +64,17 @@ export class AuthController {
   @Patch('/username')
   @PrivilegedRoute('SUPERUSER', 'OFFEREE', 'OFFEROR')
   alterUsername(
-    @ExtractUser() user: User,
+    @CurrentUser() user: User,
     @Body() alterUsernameDTO: AlterUsernameDTO,
-  ): Promise<Token> {
-    return this.authService.alterUsername(user, alterUsernameDTO);
+    @Res({ passthrough: true }) response: Response,
+  ): Promise<void> {
+    return this.authService.alterUsername(user, alterUsernameDTO, response);
   }
 
   @Patch('/password')
   @PrivilegedRoute('SUPERUSER', 'OFFEREE', 'OFFEROR')
   alterPassword(
-    @ExtractUser() user: User,
+    @CurrentUser() user: User,
     @Body() alterPasswordDTO: AlterPasswordDTO,
   ): Promise<void> {
     return this.authService.alterPassword(user, alterPasswordDTO);

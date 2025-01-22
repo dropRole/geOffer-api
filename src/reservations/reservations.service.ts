@@ -6,16 +6,17 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import BaseService from '../base.service';
-import Reservation from './reservation.entity';
+import Reservation from './entities/reservation.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, SelectQueryBuilder } from 'typeorm';
-import User from '../auth/user.entity';
+import { User } from '../auth/entities/user.entity';
 import MakeReservationDTO from './dto/make-reservation.dto';
 import { RequestsService } from '../requests/requests.service';
-import Request from '../requests/request.entity';
+import Request from '../requests/entities/request.entity';
 import ObtainReservationsDTO from './dto/obtain-reservations.dto';
 import { IncidentsService } from '../incidents/incidents.service';
-import Incident from '../incidents/incident.entity';
+import { Incident } from '../incidents/entities/incident.entity';
+import * as moment from 'moment';
 
 @Injectable()
 export class ReservationsService extends BaseService<Reservation> {
@@ -48,26 +49,14 @@ export class ReservationsService extends BaseService<Reservation> {
 
     let code = '';
 
-    const todaysDate: { type: string; value: string }[] =
-      new Intl.DateTimeFormat('en-GB', {
-        day: '2-digit',
-        month: '2-digit',
-        year: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-      }).formatToParts();
+    const todaysDate = moment(new Date());
 
-    todaysDate.forEach((part) =>
-      part.value.match(/,|\/|:| /g) === null ? (code += part.value) : undefined,
-    );
+    const requestantUser = request.offeree.user.username;
 
+    code = todaysDate.format('DDMMYYHHmmss');
     code += `_${
-      request.offeree.user.username.substring(0, 1) +
-      request.offeree.user.username.substring(
-        request.offeree.user.username.length,
-        request.offeree.user.username.length - 1,
-      )
+      requestantUser.substring(0, 1) +
+      requestantUser.substring(requestantUser.length, requestantUser.length - 1)
     }`;
 
     const reservation: Reservation = this.repo.create({ request, code });
@@ -76,7 +65,7 @@ export class ReservationsService extends BaseService<Reservation> {
       await this.repo.insert(reservation);
     } catch (error) {
       throw new InternalServerErrorException(
-        `Error during the reservation insertion: ${error.message}`,
+        `Error during the reservation insertion: ${error.message}.`,
       );
     }
 
@@ -88,7 +77,7 @@ export class ReservationsService extends BaseService<Reservation> {
   async obtainReservations(
     user: User,
     obtainReservationsDTO: ObtainReservationsDTO,
-  ): Promise<Reservation[]> {
+  ): Promise<{ reservations: Reservation[]; count: number }> {
     const { idOfferee, idOfferor, reservationPeriod, reservedOrder, take } =
       obtainReservationsDTO;
 
@@ -99,7 +88,9 @@ export class ReservationsService extends BaseService<Reservation> {
     query.innerJoinAndSelect('reservation.request', 'request');
     query.innerJoin('request.offeree', 'offeree');
     query.innerJoin('offeree.user', 'offereeUser');
-    query.innerJoin('request.offeror', 'offeror');
+    query.innerJoin('request.services', 'requestedService');
+    query.innerJoin('requestedService.serviceToOfferor', 'offerorService');
+    query.innerJoin('offerorService.offeror', 'offeror');
     query.innerJoin('offeror.user', 'offerorUser');
 
     switch (user.privilege) {
@@ -140,17 +131,17 @@ export class ReservationsService extends BaseService<Reservation> {
 
     query.take(take);
 
-    let reservations: Reservation[] = [];
+    let records: [Reservation[], number];
 
     try {
-      reservations = await query.getMany();
+      records = await query.getManyAndCount();
     } catch (error) {
       throw new InternalServerErrorException(
-        `Error during fetching the reservations: ${error.message}`,
+        `Error during fetching the reservations: ${error.message}.`,
       );
     }
 
-    return reservations;
+    return { reservations: records[0], count: records[1] };
   }
 
   async withdrawReservation(id: string): Promise<{ id: string }> {
@@ -173,7 +164,7 @@ export class ReservationsService extends BaseService<Reservation> {
         await this.repo.delete(id);
       } catch (error) {
         throw new InternalServerErrorException(
-          `Error during the reservation deletion: ${error.message}`,
+          `Error during the reservation deletion: ${error.message}.`,
         );
       }
 

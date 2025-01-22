@@ -1,15 +1,15 @@
-import User from './auth/user.entity';
-import Offeree from './offerees/offeree.entity';
+import { User } from './auth/entities/user.entity';
+import Offeree from './offerees/entities/offeree.entity';
 import * as bcrypt from 'bcrypt';
 import { v4 as uuidv4 } from 'uuid';
-import Request from './requests/request.entity';
-import Offeror from './offerors/offeror.entity';
-import Reservation from './reservations/reservation.entity';
-import Incident from './incidents/incident.entity';
-import Complaint from './complaints/complaint.entity';
-import Prohibition from './prohibitions/prohibition.entity';
+import Request from './requests/entities/request.entity';
+import { Offeror } from './offerors/entities/offeror.entity';
+import Reservation from './reservations/entities/reservation.entity';
+import { Incident } from './incidents/entities/incident.entity';
+import Complaint from './complaints/entities/complaint.entity';
+import Prohibition from './prohibitions/entities/prohibition.entity';
 import { ReversedLocation, SearchedLocation } from './locationiq/types';
-import OfferorImage from './offerors/offeror-images.entity';
+import OfferorImage from './offerors/entities/image.entity';
 
 const JWTSecret = 'G2DEKyvZ49YLLgi7r/MGEC17W+pEFqdEeOlcouS8lvw=';
 
@@ -121,6 +121,7 @@ mockOfferorsRepo = [
   {
     id: uuidv4(),
     name: 'Restoran Petrović',
+    category: 'Restaurant',
     address: {
       street: {
         name: 'Gučki put',
@@ -135,14 +136,6 @@ mockOfferorsRepo = [
     coordinates: { latitude: 43.89139, longitude: 20.34972 },
     telephone: '032/55-90-333',
     email: 'restoran.petrovic2009@gmail.com',
-    service: {
-      category: 'Restaurant',
-      service: {
-        name: 'Dinning',
-        description:
-          'Seat number inside is 150 and outside is 120. Parking places limited to 35. Internet available through wi-fi. Paying via visa, maestro, master, and dina.',
-      },
-    },
     businessHours: {
       Monday: { from: '08:00', to: '00:00' },
       Tuesday: { from: '08:00', to: '00:00' },
@@ -154,13 +147,14 @@ mockOfferorsRepo = [
     },
     reputation: { responsiveness: 10, compliance: 10, timeliness: 10 },
     user: mockUsersRepo[3],
-    requests: [mockRequestsRepo[0]],
+    services: [],
     images: [],
     events: [],
   },
   {
     id: uuidv4(),
     name: 'Bioskop Sutjeska',
+    category: 'Movie Theater',
     address: {
       street: {
         name: 'Kralja Petra I',
@@ -175,14 +169,6 @@ mockOfferorsRepo = [
     coordinates: { latitude: 43.893319, longitude: 20.3464443 },
     telephone: '032 404 100',
     email: 'cacak@bioskopsutjeska.com',
-    service: {
-      category: 'Movie Theater',
-      service: {
-        name: 'Ticket selling',
-        description:
-          'The cinema hall with its hall is located on an area of ​​about 350 square meters. The hall consists of 80 seats, of which 78 are seated, while two are intended for people with disabilities. In order to make the access and stay as easy as possible for people with disabilities, an adequate access for wheelchairs is provided. In addition, the cinema hall is equipped with unique lighting, as well as excellent air conditioning and heating. In terms of technical equipment, the new, old Sutjeska was built according to the highest world standards, which include the highest image resolution, the possibility of 3D projections, as well as a surround and Dolby system. For the complete comfort of its visitors, the seats are leather, and the distance between the backrest and the seat in the next row is 1.5m, which is significantly more than in the old hall, where the same distance was about 50cm.',
-      },
-    },
     businessHours: {
       Monday: { from: '08:00', to: '22:00' },
       Tuesday: { from: '08:00', to: '22:00' },
@@ -194,7 +180,7 @@ mockOfferorsRepo = [
     },
     reputation: { responsiveness: 10, compliance: 10, timeliness: 10 },
     user: mockUsersRepo[4],
-    requests: [mockRequestsRepo[1]],
+    services: [],
     images: [],
     events: [],
   },
@@ -206,18 +192,21 @@ mockOfferorImagesRepo = [
     destination: 'somewhere_on_aws_bucket',
     type: 'HIGHLIGHT',
     offeror: mockOfferorsRepo[0],
+    event: undefined,
   },
   {
     id: uuidv4(),
     destination: 'somewhere_on_aws_bucket',
     type: 'GALLERY',
     offeror: mockOfferorsRepo[0],
+    event: undefined,
   },
   {
     id: uuidv4(),
     destination: 'somewhere_on_aws_bucket',
     type: 'HIGHLIGHT',
     offeror: mockOfferorsRepo[1],
+    event: undefined,
   },
 ];
 
@@ -231,7 +220,6 @@ mockOfferorsRepo[1].images = [mockOfferorImagesRepo[2]];
 mockRequestsRepo = [
   {
     id: uuidv4(),
-    service: { name: 'Dinning' },
     note: 'Table for two',
     requestedAt: new Date().toString(),
     requestedFor: new Date(
@@ -239,27 +227,25 @@ mockRequestsRepo = [
     ).toString(),
     assessment: undefined,
     offeree: mockOffereesRepo[0],
-    offeror: mockOfferorsRepo[0],
+    services: [],
   },
   {
     id: uuidv4(),
-    service: { name: 'Ticket selling' },
     note: 'Two tickets for The Grand Budapest Hotel film',
     requestedAt: new Date().toString(),
     requestedFor: null,
     assessment: null,
     offeree: mockOffereesRepo[1],
-    offeror: mockOfferorsRepo[1],
+    services: [],
   },
   {
     id: uuidv4(),
-    service: { name: 'Ticket selling' },
     note: 'Three tickets for The Grand Budapest Hotel film',
     requestedAt: new Date().toString(),
     requestedFor: null,
     assessment: null,
     offeree: mockOffereesRepo[0],
-    offeror: mockOfferorsRepo[1],
+    services: [],
   },
 ];
 

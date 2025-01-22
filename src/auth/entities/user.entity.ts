@@ -1,11 +1,12 @@
 import { Entity, PrimaryColumn, Check, Column, OneToMany } from 'typeorm';
 import { Exclude } from 'class-transformer';
-import { UserPrivilege } from './types';
-import Incident from '../incidents/incident.entity';
-import Complaint from '../complaints/complaint.entity';
+import { Incident } from '../../incidents/entities/incident.entity';
+import Complaint from '../../complaints/entities/complaint.entity';
+
+export type UserPrivilege = 'SUPERUSER' | 'OFFEREE' | 'OFFEROR';
 
 @Entity('users')
-export default class User {
+export class User {
   @PrimaryColumn({ type: 'varchar', length: 20, unique: true })
   username: string;
 
@@ -17,7 +18,7 @@ export default class User {
   @Column({ type: 'varchar', length: 9 })
   privilege: UserPrivilege;
 
-  @Column({ type: 'timestamp', default: 'NOW' })
+  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created: string;
 
   @OneToMany((_type) => Incident, (incident) => incident.openedBy)

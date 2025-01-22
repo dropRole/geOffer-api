@@ -1,12 +1,12 @@
-import { IsNotEmpty, MaxLength, IsEmail } from 'class-validator';
+import { IsNotEmpty, MaxLength, IsEmail, IsString } from 'class-validator';
 
 export default class AmendBasicsDTO {
+  @IsString()
   @IsNotEmpty()
-  @MaxLength(35)
   name: string;
 
   @IsNotEmpty()
-  @MaxLength(35)
+  @IsString()
   surname: string;
 
   @IsEmail()
