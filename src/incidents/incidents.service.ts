@@ -5,7 +5,7 @@ import {
   InternalServerErrorException,
   forwardRef,
 } from '@nestjs/common';
-import BaseService from '../base.service';
+import BaseService from 'src/common/services/base.service';
 import { Incident } from './entities/incident.entity';
 import type { IncidentStatus } from './entities/incident.entity';
 import { InjectRepository } from '@nestjs/typeorm';

@@ -1,5 +1,5 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
-import BaseService from '../base.service';
+import BaseService from '../common/services/base.service';
 import Complaint from './entities/complaint.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
