@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { OffereesController } from './offerees.controller';
 import { OffereesService } from './offerees.service';
-import Offeree from './offeree.entity';
+import Offeree from './entities/offeree.entity';
 import ObtainOffereesDTO from './dto/obtain-offerees.dto';
 import {
   mockProhibitionsRepo,
@@ -9,7 +9,7 @@ import {
   mockUsersRepo,
   mockOffereesRepo,
 } from '../testing-mocks';
-import User from 'src/auth/user.entity';
+import { User } from '../auth/entities/user.entity';
 import AmendBasicsDTO from './dto/amend-basics.dto';
 
 let offereesRepo: Offeree[] = mockOffereesRepo;

@@ -12,7 +12,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, SelectQueryBuilder } from 'typeorm';
 import { User } from '../auth/entities/user.entity';
 import OpenIncidentDTO from './dto/open-incident.dto';
-import { ReservationsService } from 'src/reservations/reservations.service';
+import { ReservationsService } from '../reservations/reservations.service';
 import Reservation from '../reservations/entities/reservation.entity';
 import ObtainIncidentsDTO from './dto/obtain-incidents.dto';
 import RenameIncidentDTO from './dto/rename-incident.dto';

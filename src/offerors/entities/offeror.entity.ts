@@ -9,7 +9,6 @@ import {
 import BaseEntity from '../../common/entities/base.entity';
 import { User } from '../../auth/entities/user.entity';
 import Image from './image.entity';
-import Event from './event.entity';
 import ServiceToOfferor from './service-to-offeror.entity';
 
 type OfferorAddress = {
@@ -97,11 +96,6 @@ export class Offeror extends BaseEntity {
     eager: true,
   })
   images: Image[];
-
-  @OneToMany((_type) => Event, (offerorEvent) => offerorEvent.offeror, {
-    eager: true,
-  })
-  events: Event[];
 
   @OneToMany(
     (_type) => ServiceToOfferor,

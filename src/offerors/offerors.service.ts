@@ -5,7 +5,7 @@ import {
   Inject,
   forwardRef,
 } from '@nestjs/common';
-import BaseService from 'src/base.service';
+import BaseService from '../base.service';
 import { Offeror } from './entities/offeror.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
@@ -15,15 +15,15 @@ import {
   Repository,
 } from 'typeorm';
 import RecordOfferorDTO from './dto/record-offeror.dto';
-import { AuthService } from 'src/auth/auth.service';
-import { User } from 'src/auth/entities/user.entity';
+import { AuthService } from '../auth/auth.service';
+import { User } from '../auth/entities/user.entity';
 import * as bcrypt from 'bcrypt';
 import ObtainOfferorsDTO from './dto/obtain-offerors.dto';
 import { OfferorCategory, OfferorReputation } from './entities/offeror.entity';
 import AmendBusinessInfoDTO from './dto/amend-business-info.dto';
 import AlterReputationDTO from './dto/alter-reputation.dto';
 import Reservation from '../reservations/entities/reservation.entity';
-import { ReservationsService } from 'src/reservations/reservations.service';
+import { ReservationsService } from '../reservations/reservations.service';
 import Image from './entities/image.entity';
 import {
   S3Client,
@@ -40,7 +40,7 @@ import ServiceToOfferor from './entities/service-to-offeror.entity';
 import { AddEventDTO } from './dto/add-event.dto';
 import { AlterServiceInfoDTO } from './dto/alter-service-info.dto';
 import { DeleteServicesDTO } from './dto/delete-services-products.dto';
-import { RequestsService } from 'src/requests/requests.service';
+import { RequestsService } from '../requests/requests.service';
 import { DeleteEventsDTO } from './dto/delete-events.dto';
 import * as moment from 'moment';
 
@@ -119,7 +119,6 @@ export class OfferorsService extends BaseService<Offeror> {
         businessHours: JSON.parse(businessHours),
         user,
         images: [],
-        events: [],
       });
 
       const queryRunner: QueryRunner = this.dataSource.createQueryRunner();
@@ -403,8 +402,8 @@ export class OfferorsService extends BaseService<Offeror> {
       detailed,
       beginning,
       conclusion,
-      offeror,
       images: [],
+      services: [],
     });
 
     try {

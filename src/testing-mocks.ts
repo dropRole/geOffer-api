@@ -9,12 +9,21 @@ import { Incident } from './incidents/entities/incident.entity';
 import Complaint from './complaints/entities/complaint.entity';
 import Prohibition from './prohibitions/entities/prohibition.entity';
 import { ReversedLocation, SearchedLocation } from './locationiq/types';
-import OfferorImage from './offerors/entities/image.entity';
+import Image from './offerors/entities/image.entity';
+import { Service } from './offerors/entities/service.entity';
+import Event from './offerors/entities/event.entity';
+import ServiceToOfferor from './offerors/entities/service-to-offeror.entity';
+import ServiceToRequest from './requests/entities/service-to-request.entity';
+import * as moment from 'moment';
 
 let mockUsersRepo: User[] = [];
 let mockOffereesRepo: Offeree[] = [];
 let mockOfferorsRepo: Offeror[] = [];
-let mockOfferorImagesRepo: OfferorImage[] = [];
+let mockEventsRepo: Event[] = [];
+let mockServicesRepo: Service[] = [];
+let mockOfferorServicesRepo: ServiceToOfferor[] = [];
+let mockRequestServicesRepo: ServiceToRequest[] = [];
+let mockImagesRepo: Image[] = [];
 let mockRequestsRepo: Request[] = [];
 let mockReservationsRepo: Reservation[] = [];
 let mockIncidentsRepo: Incident[] = [];
@@ -147,7 +156,6 @@ mockOfferorsRepo = [
     user: mockUsersRepo[3],
     services: [],
     images: [],
-    events: [],
   },
   {
     id: uuidv4(),
@@ -180,11 +188,61 @@ mockOfferorsRepo = [
     user: mockUsersRepo[4],
     services: [],
     images: [],
-    events: [],
   },
 ];
 
-mockOfferorImagesRepo = [
+mockEventsRepo = [
+  {
+    id: uuidv4(),
+    name: 'Nosferatu',
+    detailed:
+      'A gothic tale of obsession between a haunted young woman and the terrifying vampire infatuated with her, causing untold horror in its wake.',
+    beginning: '26-01-2025 21:45:00',
+    conclusion: '26-01-2025 23:57:00',
+    images: [],
+    services: [],
+  },
+];
+
+mockServicesRepo = [
+  {
+    id: uuidv4(),
+    category: 'Seat reservation',
+    detailed: undefined,
+    offerors: [],
+  },
+  {
+    id: uuidv4(),
+    category: 'Ticket selling',
+    detailed: undefined,
+    offerors: [],
+  },
+];
+
+mockOfferorServicesRepo = [
+  {
+    id: uuidv4(),
+    price: 10,
+    service: mockServicesRepo[0],
+    offeror: mockOfferorsRepo[0],
+    event: undefined,
+    serviceRequests: [],
+  },
+  {
+    id: uuidv4(),
+    price: 5,
+    service: mockServicesRepo[1],
+    offeror: mockOfferorsRepo[1],
+    event: undefined,
+    serviceRequests: [],
+  },
+];
+
+mockServicesRepo[0].offerors = [mockOfferorServicesRepo[0]];
+
+mockEventsRepo[0].services = [mockOfferorServicesRepo[0]];
+
+mockImagesRepo = [
   {
     id: uuidv4(),
     destination: 'somewhere_on_aws_bucket',
@@ -206,14 +264,20 @@ mockOfferorImagesRepo = [
     offeror: mockOfferorsRepo[1],
     event: undefined,
   },
+  {
+    id: uuidv4(),
+    destination: 'somewhere_on_aws_bucket',
+    type: 'HIGHLIGHT',
+    offeror: undefined,
+    event: mockEventsRepo[0],
+  },
 ];
 
-mockOfferorsRepo[0].images = [
-  mockOfferorImagesRepo[0],
-  mockOfferorImagesRepo[1],
-];
+mockOfferorsRepo[0].images = [mockImagesRepo[0], mockImagesRepo[1]];
 
-mockOfferorsRepo[1].images = [mockOfferorImagesRepo[2]];
+mockOfferorsRepo[1].images = [mockImagesRepo[2]];
+
+mockEventsRepo[0].images = [mockImagesRepo[3]];
 
 mockRequestsRepo = [
   {
@@ -246,6 +310,31 @@ mockRequestsRepo = [
     services: [],
   },
 ];
+
+mockRequestServicesRepo = [
+  {
+    id: uuidv4(),
+    amount: 2,
+    request: mockRequestsRepo[0],
+    serviceToOfferor: mockOfferorServicesRepo[0],
+  },
+  {
+    id: uuidv4(),
+    amount: 3,
+    request: mockRequestsRepo[1],
+    serviceToOfferor: mockOfferorServicesRepo[1],
+  },
+  {
+    id: uuidv4(),
+    amount: 3,
+    request: mockRequestsRepo[2],
+    serviceToOfferor: mockOfferorServicesRepo[1],
+  },
+];
+
+mockRequestsRepo[0].services = [mockRequestServicesRepo[0]];
+mockRequestsRepo[1].services = [mockRequestServicesRepo[1]];
+mockRequestsRepo[2].services = [mockRequestServicesRepo[2]];
 
 mockReservationsRepo = [
   {
@@ -346,7 +435,10 @@ export {
   mockProhibitionsRepo,
   mockRequestsRepo,
   mockOfferorsRepo,
-  mockOfferorImagesRepo,
+  mockServicesRepo,
+  mockOfferorServicesRepo,
+  mockEventsRepo,
+  mockImagesRepo,
   mockReservationsRepo,
   mockIncidentsRepo,
   mockComplaintsRepo,

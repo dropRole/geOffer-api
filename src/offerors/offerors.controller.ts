@@ -18,7 +18,7 @@ import { PrivilegedRoute } from '../common/decorators/privileged-route.decorator
 import RecordOfferorDTO from './dto/record-offeror.dto';
 import { Offeror } from './entities/offeror.entity';
 import ObtainOfferorsDTO from './dto/obtain-offerors.dto';
-import CurrentUser from 'src/auth/current-user.decorator';
+import CurrentUser from '../auth/current-user.decorator';
 import { OfferorReputation } from './entities/offeror.entity';
 import AmendBusinessInfoDTO from './dto/amend-business-info.dto';
 import AlterReputationDTO from './dto/alter-reputation.dto';
@@ -122,7 +122,7 @@ export class OfferorsController {
   @Get('/reputation')
   @PrivilegedRoute('OFFEROR')
   claimReputation(@CurrentUser() user: User): Promise<OfferorReputation> {
-    return;
+    return this.offerorsService.claimReputation(user);
   }
 
   @Patch('/business-info')

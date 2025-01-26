@@ -2,27 +2,45 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { OfferorsController } from './offerors.controller';
 import { OfferorsService } from './offerors.service';
 import RecordOfferorDTO from './dto/record-offeror.dto';
-import Offeror from './offeror.entity';
+import {
+  Offeror,
+  OfferorCategory,
+  OfferorReputation,
+} from './entities/offeror.entity';
 import {
   mockOfferorsRepo,
   mockReservationsRepo,
   mockUsersRepo,
-  mockOfferorImagesRepo,
+  mockImagesRepo,
+  mockEventsRepo,
+  mockServicesRepo,
+  mockOfferorServicesRepo,
 } from '../testing-mocks';
 import { ConflictException } from '@nestjs/common';
 import { v4 as uuidv4 } from 'uuid';
-import User from '../auth/user.entity';
+import { User } from '../auth/entities/user.entity';
 import * as bcrypt from 'bcrypt';
 import ObtainOfferorsDTO from './dto/obtain-offerors.dto';
-import { OfferorReputation } from './types';
 import AmendBusinessInfoDTO from './dto/amend-business-info.dto';
 import AlterReputationDTO from './dto/alter-reputation.dto';
-import OfferorImage from './offeror-images.entity';
+import Image from './entities/image.entity';
 import { DeleteGalleryImagesDTO } from './dto/delete-gallery-images.dto';
+import { ProvideServiceDTO } from './dto/provide-service.dto';
+import { Service, ServiceCategory } from './entities/service.entity';
+import Event from './entities/event.entity';
+import ServiceToOfferor from './entities/service-to-offeror.entity';
+import { AddEventDTO } from './dto/add-event.dto';
+import { AlterServiceInfoDTO } from './dto/alter-service-info.dto';
+import { AmendEventInfoDTO } from './dto/amend-event.info.dto';
+import { DeleteServicesDTO } from './dto/delete-services-products.dto';
+import { DeleteEventsDTO } from './dto/delete-events.dto';
 
 let usersRepo: User[] = mockUsersRepo;
 let offerorsRepo: Offeror[] = mockOfferorsRepo;
-let offerorImagesRepo: OfferorImage[] = mockOfferorImagesRepo;
+let servicesRepo: Service[] = mockServicesRepo;
+let offerorServicesRepo: ServiceToOfferor[] = mockOfferorServicesRepo;
+let eventsRepo: Event[] = mockEventsRepo;
+let imagesRepo: Image[] = mockImagesRepo;
 
 describe('OfferorsController', () => {
   let controller: OfferorsController;
@@ -56,11 +74,11 @@ describe('OfferorsController', () => {
                 const {
                   password,
                   name,
+                  category,
                   address,
                   coordinates,
                   email,
                   telephone,
-                  service,
                   businessHours,
                 } = recordOfferorDTO;
 
@@ -78,11 +96,11 @@ describe('OfferorsController', () => {
                 const offeror: Offeror = {
                   id: uuidv4(),
                   name,
+                  category: category as OfferorCategory,
                   address: JSON.parse(address),
                   coordinates: JSON.parse(coordinates),
                   telephone,
                   email,
-                  service: JSON.parse(service),
                   businessHours: JSON.parse(businessHours),
                   reputation: {
                     responsiveness: 10,
@@ -90,31 +108,32 @@ describe('OfferorsController', () => {
                     timeliness: 10,
                   },
                   user,
-                  requests: [],
+                  services: [],
                   images: [],
-                  events: [],
                 };
 
-                const highlightImage: OfferorImage = {
+                const highlightImage: Image = {
                   id: uuidv4(),
-                  offeror,
                   type: 'HIGHLIGHT',
                   destination: files.highlight.destination,
+                  offeror,
+                  event: undefined,
                 };
 
-                offerorImagesRepo.push(highlightImage);
+                imagesRepo.push(highlightImage);
 
                 offeror.images.push(highlightImage);
 
                 for (const galleryImage of files.gallery) {
-                  const image: OfferorImage = {
+                  const image: Image = {
                     id: uuidv4(),
-                    offeror,
                     type: 'GALLERY',
                     destination: galleryImage.destination,
+                    offeror,
+                    event: undefined,
                   };
 
-                  offerorImagesRepo.push(image);
+                  imagesRepo.push(image);
 
                   offeror.images.push(image);
                 }
@@ -124,24 +143,61 @@ describe('OfferorsController', () => {
                 return { id: offeror.id };
               },
             ),
+            provideService: jest
+              .fn()
+              .mockImplementation(
+                (user: User, provideServiceDTO: ProvideServiceDTO): void => {
+                  const offeror: Offeror = mockOfferorsRepo.find(
+                    (offeror) => offeror.user.username === user.username,
+                  );
+
+                  const { category, detailed, price, idEvent } =
+                    provideServiceDTO;
+
+                  let event: Event;
+
+                  if (idEvent)
+                    event = eventsRepo.find((event) => event.id === idEvent);
+
+                  const service: Service = {
+                    id: uuidv4(),
+                    category: category as ServiceCategory,
+                    detailed,
+                    offerors: [],
+                  };
+
+                  const offerorService: ServiceToOfferor = {
+                    id: uuidv4(),
+                    price,
+                    service,
+                    offeror,
+                    event,
+                    serviceRequests: [],
+                  };
+
+                  service.offerors = [offerorService];
+
+                  servicesRepo.push(service);
+
+                  offerorServicesRepo.push(offerorService);
+                },
+              ),
             addGalleryImages: jest
               .fn()
               .mockImplementation(
-                (
-                  user: User,
-                  files: { gallery: Express.Multer.File[] },
-                ): void => {
+                (user: User, images: Express.Multer.File[]): void => {
                   offerorsRepo = offerorsRepo.map((offeror) => {
                     if (offeror.user.username === user.username) {
-                      for (const galleryImage of files.gallery) {
-                        const image: OfferorImage = {
+                      for (const galleryImage of images) {
+                        const image: Image = {
                           id: uuidv4(),
-                          offeror,
                           type: 'GALLERY',
                           destination: galleryImage.destination,
+                          offeror,
+                          event: undefined,
                         };
 
-                        offerorImagesRepo.push(image);
+                        imagesRepo.push(image);
 
                         offeror.images.push(image);
                       }
@@ -149,6 +205,43 @@ describe('OfferorsController', () => {
 
                     return offeror;
                   });
+                },
+              ),
+            addEvent: jest
+              .fn()
+              .mockImplementation(
+                (
+                  user: User,
+                  image: Express.Multer.File,
+                  addEventDTO: AddEventDTO,
+                ): { id: string } => {
+                  const { name, beginning, conclusion, detailed } = addEventDTO;
+
+                  const event: Event = {
+                    id: uuidv4(),
+                    name,
+                    beginning,
+                    conclusion,
+                    detailed,
+                    images: [],
+                    services: [],
+                  };
+
+                  const eventImage: Image = {
+                    id: uuidv4(),
+                    type: 'HIGHLIGHT',
+                    destination: image.destination,
+                    offeror: undefined,
+                    event,
+                  };
+
+                  event.images = [eventImage];
+
+                  eventsRepo.push(event);
+
+                  imagesRepo.push(eventImage);
+
+                  return { id: event.id };
                 },
               ),
             obtainOfferors: jest
@@ -185,8 +278,12 @@ describe('OfferorsController', () => {
                       let reservationsMade = 0;
 
                       mockReservationsRepo.forEach((reservation) => {
-                        if (reservation.request.offeror.id === offeror.id)
-                          reservationsMade++;
+                        reservation.request.services.forEach((service) => {
+                          if (
+                            service.serviceToOfferor.offeror.id === offeror.id
+                          )
+                            reservationsMade++;
+                        });
                       });
 
                       return { ...offeror, reservationsMade };
@@ -211,15 +308,14 @@ describe('OfferorsController', () => {
               .mockImplementation(
                 (
                   user: User,
-                ): Omit<
+                ): Pick<
                   Offeror,
-                  | 'id'
+                  | 'name'
+                  | 'address'
                   | 'coordinates'
-                  | 'reputation'
-                  | 'user'
-                  | 'requests'
-                  | 'images'
-                  | 'events'
+                  | 'telephone'
+                  | 'email'
+                  | 'businessHours'
                 > => {
                   const offeror: Offeror = offerorsRepo.find(
                     (offeror) => offeror.user.username === user.username,
@@ -227,19 +323,19 @@ describe('OfferorsController', () => {
 
                   const {
                     name,
+                    coordinates,
                     address,
                     telephone,
                     email,
-                    service,
                     businessHours,
                   } = offeror;
 
                   return {
                     name,
                     address,
+                    coordinates,
                     telephone,
                     email,
-                    service,
                     businessHours,
                   };
                 },
@@ -251,11 +347,9 @@ describe('OfferorsController', () => {
                   (offeror) => offeror.user.username === user.username,
                 );
 
-                const {
-                  reputation: { responsiveness, compliance, timeliness },
-                } = offeror;
+                const { reputation } = offeror;
 
-                return { responsiveness, compliance, timeliness };
+                return reputation;
               }),
             amendBusinessInfo: jest
               .fn()
@@ -270,9 +364,11 @@ describe('OfferorsController', () => {
                         ...offeror,
                         name: amendBusinessInfoDTO.name,
                         address: JSON.parse(amendBusinessInfoDTO.address),
+                        coordinates: JSON.parse(
+                          amendBusinessInfoDTO.coordinates,
+                        ),
                         telephone: amendBusinessInfoDTO.telephone,
                         email: amendBusinessInfoDTO.email,
-                        service: JSON.parse(amendBusinessInfoDTO.service),
                         businessHours: JSON.parse(
                           amendBusinessInfoDTO.businessHours,
                         ),
@@ -310,18 +406,44 @@ describe('OfferorsController', () => {
                   return { id };
                 },
               ),
-            changeHighlightImage: jest
+            alterServiceInfo: jest
               .fn()
               .mockImplementation(
                 (
                   user: User,
-                  files: { highlight: Express.Multer.File },
+                  idService: string,
+                  alterServiceInfoDTO: AlterServiceInfoDTO,
                 ): void => {
+                  const { detailed, price } = alterServiceInfoDTO;
+
+                  servicesRepo = servicesRepo.map((service) => {
+                    if (service.id === idService) service.detailed = detailed;
+
+                    return service;
+                  });
+
+                  offerorServicesRepo = offerorServicesRepo.map(
+                    (offerorService) => {
+                      if (
+                        offerorService.service.id === idService &&
+                        offerorService.offeror.user.username === user.username
+                      )
+                        offerorService.price = price;
+
+                      return offerorService;
+                    },
+                  );
+                },
+              ),
+            changeHighlightImage: jest
+              .fn()
+              .mockImplementation(
+                (user: User, image: Express.Multer.File): void => {
                   offerorsRepo = offerorsRepo.map((offeror) => {
                     if (offeror.user.username === user.username) {
                       offeror.images.map((image) => {
                         if (image.type === 'HIGHLIGHT') {
-                          image.destination = files.highlight.destination;
+                          image.destination = image.destination;
 
                           return image;
                         }
@@ -333,13 +455,41 @@ describe('OfferorsController', () => {
                     return offeror;
                   });
 
-                  offerorImagesRepo = offerorImagesRepo.map((image) => {
+                  imagesRepo = imagesRepo.map((image) => {
                     if (
+                      image.offeror &&
                       image.offeror.user.username === user.username &&
                       image.type === 'HIGHLIGHT'
                     ) {
-                      image.destination = files.highlight.destination;
+                      image.destination = image.destination;
                     }
+
+                    return image;
+                  });
+                },
+              ),
+            amendEventInfo: jest
+              .fn()
+              .mockImplementation(
+                (
+                  idEvent: string,
+                  amendEventInfoDTO: AmendEventInfoDTO,
+                ): void => {
+                  eventsRepo = eventsRepo.map((event) => {
+                    if (event.id === idEvent)
+                      event = { ...event, ...amendEventInfoDTO };
+
+                    return event;
+                  });
+                },
+              ),
+            changeEventImage: jest
+              .fn()
+              .mockImplementation(
+                (idEvent: string, eventImage: Express.Multer.File): void => {
+                  imagesRepo = imagesRepo.map((image) => {
+                    if (image.event && image.event.id === idEvent)
+                      image = { ...image, destination: eventImage.destination };
 
                     return image;
                   });
@@ -359,9 +509,71 @@ describe('OfferorsController', () => {
                     ),
                   );
 
-                  offerorImagesRepo = offerorImagesRepo.filter(
+                  imagesRepo = imagesRepo.filter(
                     (image) => !ids.find((id) => id === image.id),
                   );
+                },
+              ),
+            deleteServices: jest
+              .fn()
+              .mockImplementation(
+                (
+                  user: User,
+                  deleteServicesDTO: DeleteServicesDTO,
+                ): { affectedRecords: number } => {
+                  const { serviceIds } = deleteServicesDTO;
+
+                  const ids: string[] = JSON.parse(serviceIds).ids;
+
+                  let i = 0;
+
+                  offerorServicesRepo = offerorServicesRepo.filter(
+                    (offerorService) =>
+                      !ids.includes(offerorService.service.id),
+                  );
+
+                  servicesRepo = servicesRepo.filter((service) =>
+                    service.offerors.forEach((serviceOfferor) => {
+                      if (
+                        serviceOfferor.offeror.user.username ===
+                          user.username &&
+                        ids.includes(service.id)
+                      ) {
+                        i++;
+
+                        return false;
+                      }
+                    }),
+                  );
+
+                  return { affectedRecords: i };
+                },
+              ),
+            deleteEvents: jest
+              .fn()
+              .mockImplementation(
+                (
+                  deleteEventsDTO: DeleteEventsDTO,
+                ): { affectedRecords: number } => {
+                  const { eventIds } = deleteEventsDTO;
+
+                  const ids: string[] = JSON.parse(eventIds).ids;
+
+                  let i = 0;
+
+                  imagesRepo = imagesRepo.filter(
+                    (image) => !ids.includes(image.event ? image.event.id : ''),
+                  );
+
+                  eventsRepo = eventsRepo.filter((event) => {
+                    if (ids.includes(event.id)) {
+                      i++;
+
+                      return false;
+                    }
+                  });
+
+                  return { affectedRecords: i };
                 },
               ),
           };
@@ -376,6 +588,7 @@ describe('OfferorsController', () => {
       username: 'cafeenigma',
       password: 'cafeEnigma@24',
       name: 'Cafe Enigma',
+      category: 'Café/Pub',
       address: JSON.stringify({
         street: { name: 'Cara Lazara', numeration: '7' },
         city: { name: 'Čačak', postalCode: '32000' },
@@ -384,13 +597,6 @@ describe('OfferorsController', () => {
       coordinates: JSON.stringify({ latitude: 0, longitude: 0 }),
       telephone: '032 343878',
       email: 'cafeenigma@email.com',
-      service: JSON.stringify({
-        category: 'Café/Pub',
-        service: {
-          name: 'Drinking',
-          description: 'Alcoholic and nonalcoholic drinks',
-        },
-      }),
       businessHours: JSON.stringify({
         Monday: { from: '08:00', to: '00:00' },
         Tuesday: { from: '08:00', to: '00:00' },
@@ -462,43 +668,84 @@ describe('OfferorsController', () => {
     });
   });
 
+  describe('provideService', () => {
+    it('should be void', () => {
+      const provideServiceDTO: ProvideServiceDTO = {
+        category: 'Seat reservation',
+        detailed: 'Price may vary in the future',
+        price: 10,
+        idEvent: undefined,
+      };
+
+      expect(
+        controller.provideService(offerorsRepo[2].user, provideServiceDTO),
+      ).toBeUndefined();
+    });
+  });
+
   describe('addGalleryImages', () => {
     it('should be void', () => {
-      const files: { gallery: Express.Multer.File[] } = {
-        gallery: [
-          {
-            buffer: Buffer.alloc(1000000),
-            destination: undefined,
-            fieldname: 'gallery',
-            filename: 'enigma_gallery_image_1.webp',
-            mimetype: 'image/webp',
-            originalname: 'enigma_gallery_image.webp',
-            path: undefined,
-            size: 1000000,
-            stream: undefined,
-            encoding: 'UTF-8',
-          },
-          {
-            buffer: Buffer.alloc(1000000),
-            destination: undefined,
-            fieldname: 'gallery',
-            filename: 'enigma_gallery_image_2.webp',
-            mimetype: 'image/webp',
-            originalname: 'enigma_gallery_image_0.webp',
-            path: undefined,
-            size: 1000000,
-            stream: undefined,
-            encoding: 'UTF-8',
-          },
-        ],
-      };
+      const images: Express.Multer.File[] = [
+        {
+          buffer: Buffer.alloc(1000000),
+          destination: undefined,
+          fieldname: 'gallery',
+          filename: 'enigma_gallery_image_1.webp',
+          mimetype: 'image/webp',
+          originalname: 'enigma_gallery_image.webp',
+          path: undefined,
+          size: 1000000,
+          stream: undefined,
+          encoding: 'UTF-8',
+        },
+        {
+          buffer: Buffer.alloc(1000000),
+          destination: undefined,
+          fieldname: 'gallery',
+          filename: 'enigma_gallery_image_2.webp',
+          mimetype: 'image/webp',
+          originalname: 'enigma_gallery_image_0.webp',
+          path: undefined,
+          size: 1000000,
+          stream: undefined,
+          encoding: 'UTF-8',
+        },
+      ];
 
       expect(
         controller.addGalleryImages(
           offerorsRepo[offerorsRepo.length - 1].user,
-          files,
+          images,
         ),
       ).toBeUndefined();
+    });
+  });
+
+  describe('addEvent', () => {
+    it('should return an object holding an id of an inserted event', () => {
+      const addEventDTO: AddEventDTO = {
+        name: 'Party',
+        beginning: '30.01.2025 21:00:00',
+        conclusion: '30.01.2025 21:00:00',
+        detailed: 'Bring your palls',
+      };
+
+      const eventImage: Express.Multer.File = {
+        buffer: Buffer.alloc(1000000),
+        destination: 'somewhere_on_aws_bucket',
+        fieldname: 'highlight',
+        filename: 'enigma_event_highlight_image.webp',
+        mimetype: 'image/webp',
+        originalname: 'enigma_event_highlight_image.webp',
+        path: undefined,
+        size: 1000000,
+        stream: undefined,
+        encoding: 'UTF-8',
+      };
+
+      expect(
+        controller.addEvent(offerorsRepo[2].user, eventImage, addEventDTO),
+      ).toMatchObject({ id: expect.any(String) });
     });
   });
 
@@ -520,22 +767,21 @@ describe('OfferorsController', () => {
   describe('claimBusinessInfo', () => {
     it('should return an object that holds name, address, telephone, email, service and businessHours properties', () => {
       expect(controller.claimBusinessInfo(usersRepo[5])).toMatchObject<
-        Omit<
+        Pick<
           Offeror,
-          | 'id'
+          | 'name'
+          | 'address'
           | 'coordinates'
-          | 'reputation'
-          | 'user'
-          | 'requests'
-          | 'images'
-          | 'events'
+          | 'telephone'
+          | 'email'
+          | 'businessHours'
         >
       >({
         name: expect.any(String),
         address: expect.any(Object),
+        coordinates: expect.any(Object),
         telephone: expect.any(String),
         email: expect.any(String),
-        service: expect.any(Object),
         businessHours: expect.any(Object),
       });
     });
@@ -543,9 +789,7 @@ describe('OfferorsController', () => {
 
   describe('claimReputation', () => {
     it('should return an object that holds responsiveness, compliance, timeliness properties', () => {
-      expect(
-        controller.claimReputation(usersRepo[5]),
-      ).toMatchObject<OfferorReputation>({
+      expect(controller.claimReputation(offerorsRepo[2].user)).toMatchObject({
         responsiveness: expect.any(Number),
         compliance: expect.any(Number),
         timeliness: expect.any(Number),
@@ -559,9 +803,9 @@ describe('OfferorsController', () => {
         controller.amendBusinessInfo(usersRepo[5], {
           name: offerorsRepo[1].name,
           address: JSON.stringify(offerorsRepo[1].address),
+          coordinates: JSON.stringify(offerorsRepo[1].coordinates),
           telephone: offerorsRepo[1].telephone,
           email: offerorsRepo[1].email,
-          service: JSON.stringify(offerorsRepo[1].service),
           businessHours: JSON.stringify(offerorsRepo[1].businessHours),
         }),
       ).toBeUndefined();
@@ -582,28 +826,79 @@ describe('OfferorsController', () => {
     });
   });
 
+  describe('alterServiceInfo', () => {
+    it('should be void', () => {
+      const alterServiceInfoDTO: AlterServiceInfoDTO = {
+        detailed: 'Per seat reservation',
+        price: 15,
+      };
+
+      expect(
+        controller.alterServiceInfo(
+          offerorsRepo[2].user,
+          servicesRepo[servicesRepo.length - 1].id,
+          alterServiceInfoDTO,
+        ),
+      ).toBeUndefined();
+    });
+  });
+
   describe('changeHighlightImage', () => {
     it('should be void', () => {
-      const files: { highlight: Express.Multer.File } = {
-        highlight: {
-          buffer: Buffer.alloc(1000000),
-          destination: undefined,
-          fieldname: 'highlight',
-          filename: 'enigma_highlight_image_0.webp',
-          mimetype: 'image/webp',
-          originalname: 'enigma_gallery_image_0.webp',
-          path: undefined,
-          size: 1000000,
-          stream: undefined,
-          encoding: 'UTF-8',
-        },
+      const image: Express.Multer.File = {
+        buffer: Buffer.alloc(1000000),
+        destination: undefined,
+        fieldname: 'highlight',
+        filename: 'enigma_highlight_image_0.webp',
+        mimetype: 'image/webp',
+        originalname: 'enigma_gallery_image_0.webp',
+        path: undefined,
+        size: 1000000,
+        stream: undefined,
+        encoding: 'UTF-8',
       };
 
       expect(
         controller.changeHighlightImage(
           offerorsRepo[offerorsRepo.length - 1].user,
-          files,
+          image,
         ),
+      ).toBeUndefined();
+    });
+  });
+
+  describe('amendEventInfo', () => {
+    it('should be void', () => {
+      const amendEventInfoDTO: AmendEventInfoDTO = {
+        name: 'Party of the night',
+        beginning: '30.01.2025 21:00:00',
+        conclusion: '30.01.2025 21:00:00',
+        detailed: 'Bring your palls',
+      };
+
+      expect(
+        controller.amendEventInfo(eventsRepo[1].id, amendEventInfoDTO),
+      ).toBeUndefined();
+    });
+  });
+
+  describe('changeEventImage', () => {
+    it('should be void', () => {
+      const eventImage: Express.Multer.File = {
+        buffer: Buffer.alloc(1000000),
+        destination: 'somewhere_on_aws_bucket',
+        fieldname: 'highlight',
+        filename: 'enigma_event_highlight_image_1.webp',
+        mimetype: 'image/webp',
+        originalname: 'enigma_event_highlight_image_1.webp',
+        path: undefined,
+        size: 1000000,
+        stream: undefined,
+        encoding: 'UTF-8',
+      };
+
+      expect(
+        controller.changeEventImage(eventsRepo[1].id, eventImage),
       ).toBeUndefined();
     });
   });
@@ -612,13 +907,41 @@ describe('OfferorsController', () => {
     it('should be void', () => {
       const deleteGalleryImagesDTO: DeleteGalleryImagesDTO = {
         imageIds: JSON.stringify({
-          ids: [offerorImagesRepo[0].id, offerorImagesRepo[1].id],
+          ids: [imagesRepo[0].id, imagesRepo[1].id],
         }),
       };
 
       expect(
         controller.deleteGalleryImages(deleteGalleryImagesDTO),
       ).toBeUndefined();
+    });
+  });
+
+  describe('deleteServices', () => {
+    it('should return object holding the number of affected records', () => {
+      const deleteServicesDTO: DeleteServicesDTO = {
+        serviceIds: JSON.stringify({
+          ids: [servicesRepo[0].id],
+        }),
+      };
+
+      expect(
+        controller.deleteServices(offerorsRepo[0].user, deleteServicesDTO),
+      ).toMatchObject({ affectedRecords: 1 });
+    });
+  });
+
+  describe('deleteEvents', () => {
+    it('should return object holding the number of affected records', () => {
+      const deleteEventsDTO: DeleteEventsDTO = {
+        eventIds: JSON.stringify({
+          ids: [eventsRepo[0].id],
+        }),
+      };
+
+      expect(controller.deleteEvents(deleteEventsDTO)).toMatchObject({
+        affectedRecords: 1,
+      });
     });
   });
 });
