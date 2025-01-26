@@ -5,7 +5,7 @@ import {
   ConflictException,
   InternalServerErrorException,
 } from '@nestjs/common';
-import BaseService from 'src/base.service';
+import BaseService from 'src/common/services/base.service';
 import Reservation from './entities/reservation.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, SelectQueryBuilder } from 'typeorm';

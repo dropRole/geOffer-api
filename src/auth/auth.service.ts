@@ -4,7 +4,7 @@ import {
   ConflictException,
   UnauthorizedException,
 } from '@nestjs/common';
-import BaseService from 'src/base.service';
+import BaseService from 'src/common/services/base.service';
 import { User } from './entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource, QueryRunner } from 'typeorm';

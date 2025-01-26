@@ -8,7 +8,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import Request from './entities/request.entity';
 import { DataSource, QueryRunner, Repository } from 'typeorm';
-import BaseService from 'src/base.service';
+import BaseService from 'src/common/services/base.service';
 import { User } from '../auth/entities/user.entity';
 import MakeRequestDTO from './dto/make-request.dto';
 import { OfferorsService } from 'src/offerors/offerors.service';

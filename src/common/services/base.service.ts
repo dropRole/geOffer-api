@@ -1,12 +1,12 @@
-import { User } from './auth/entities/user.entity';
-import Complaint from './complaints/entities/complaint.entity';
-import { DataLoggerService } from './data-logger/data-logger.service';
-import { Incident } from './incidents/entities/incident.entity';
-import Offeree from './offerees/entities/offeree.entity';
-import { Offeror } from './offerors/entities/offeror.entity';
-import Prohibition from './prohibitions/entities/prohibition.entity';
-import Request from './requests/entities/request.entity';
-import Reservation from './reservations/entities/reservation.entity';
+import { User } from '../../auth/entities/user.entity';
+import Complaint from '../../complaints/entities/complaint.entity';
+import { DataLoggerService } from '../../data-logger/data-logger.service';
+import { Incident } from '../../incidents/entities/incident.entity';
+import Offeree from '../../offerees/entities/offeree.entity';
+import { Offeror } from '../../offerors/entities/offeror.entity';
+import Prohibition from '../../prohibitions/entities/prohibition.entity';
+import Request from '../../requests/entities/request.entity';
+import Reservation from '../../reservations/entities/reservation.entity';
 import { Repository, FindOptionsWhere } from 'typeorm';
 import {
   InternalServerErrorException,

@@ -5,7 +5,7 @@ import {
   Inject,
   forwardRef,
 } from '@nestjs/common';
-import BaseService from 'src/base.service';
+import BaseService from 'src/common/services/base.service';
 import { Offeror } from './entities/offeror.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
@@ -119,7 +119,6 @@ export class OfferorsService extends BaseService<Offeror> {
         businessHours: JSON.parse(businessHours),
         user,
         images: [],
-        events: [],
       });
 
       const queryRunner: QueryRunner = this.dataSource.createQueryRunner();
@@ -403,7 +402,6 @@ export class OfferorsService extends BaseService<Offeror> {
       detailed,
       beginning,
       conclusion,
-      offeror,
       images: [],
     });
 
