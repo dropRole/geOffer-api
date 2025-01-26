@@ -1,6 +1,5 @@
 import BaseEntity from 'src/common/entities/base.entity';
-import { Column, Entity, ManyToOne, OneToMany } from 'typeorm';
-import Offeror from './offeror.entity';
+import { Column, Entity, OneToMany } from 'typeorm';
 import Image from './image.entity';
 import ServiceToOfferor from './service-to-offeror.entity';
 
@@ -17,9 +16,6 @@ export default class Event extends BaseEntity {
 
   @Column({ type: 'timestamp', nullable: true })
   conclusion: string;
-
-  @ManyToOne((_type) => Offeror, (offeror) => offeror.events)
-  offeror: Offeror;
 
   @OneToMany((_type) => Image, (image) => image.event, { eager: true })
   images: Image[];
