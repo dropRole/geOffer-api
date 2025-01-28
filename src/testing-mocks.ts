@@ -434,6 +434,7 @@ export {
   mockOffereesRepo,
   mockProhibitionsRepo,
   mockRequestsRepo,
+  mockRequestServicesRepo,
   mockOfferorsRepo,
   mockServicesRepo,
   mockOfferorServicesRepo,

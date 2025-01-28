@@ -1,24 +1,27 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { RequestsController } from './requests.controller';
 import { RequestsService } from './requests.service';
-import User from '../auth/user.entity';
+import { User } from '../auth/entities/user.entity';
 import MakeRequestDTO from './dto/make-request.dto';
-import Offeror from '../offerors/offeror.entity';
 import {
   mockOffereesRepo,
-  mockOfferorsRepo,
+  mockOfferorServicesRepo,
+  mockRequestServicesRepo,
   mockRequestsRepo,
   mockUsersRepo,
 } from '../testing-mocks';
-import { NotFoundException, UnauthorizedException } from '@nestjs/common';
-import Request from './request.entity';
+import { NotFoundException } from '@nestjs/common';
+import Request from './entities/request.entity';
 import { v4 as uuidv4 } from 'uuid';
-import Offeree from '../offerees/offeree.entity';
+import Offeree from '../offerees/entities/offeree.entity';
 import ObtainRequestsDTO from './dto/obtain-requests.dto';
 import AmendRequestProvisionsDTO from './dto/amend-request-provisions.dto';
 import AssessReservationTimeDTO from './dto/assess-reservation-time.dto';
+import ServiceToRequest from './entities/service-to-request.entity';
+import ServiceToOfferor from 'src/offerors/entities/service-to-offeror.entity';
 
 let requestsRepo: Request[] = mockRequestsRepo;
+let requestServicesRepo: ServiceToRequest[] = mockRequestServicesRepo;
 
 describe('RequestsController', () => {
   let controller: RequestsController;
@@ -37,34 +40,41 @@ describe('RequestsController', () => {
                   user: User,
                   makeRequestDTO: MakeRequestDTO,
                 ): { id: string } => {
-                  const { idOfferor, service, note, requestedFor } =
+                  const { note, requestedFor, amount, idOfferorService } =
                     makeRequestDTO;
-
-                  const offeror: Offeror = mockOfferorsRepo.find(
-                    (offeror) => offeror.id === idOfferor,
-                  );
-
-                  if (!offeror)
-                    throw new NotFoundException(
-                      `Offeror identified with ${idOfferor} was not found.`,
-                    );
 
                   const offeree: Offeree = mockOffereesRepo.find(
                     (offeree) => offeree.user.username === user.username,
                   );
 
+                  const offerorService: ServiceToOfferor =
+                    mockOfferorServicesRepo.find(
+                      (offerorService) =>
+                        offerorService.id === idOfferorService,
+                    );
+
                   const request: Request = {
                     id: uuidv4(),
-                    service: JSON.parse(service),
                     note,
                     requestedAt: new Date().toString(),
                     requestedFor,
                     assessment: undefined,
                     offeree,
-                    offeror,
+                    services: [],
                   };
 
+                  const requestService: ServiceToRequest = {
+                    id: uuidv4(),
+                    amount,
+                    request,
+                    serviceToOfferor: offerorService,
+                  };
+
+                  request.services = [requestService];
+
                   requestsRepo.push(request);
+
+                  requestServicesRepo.push(requestService);
 
                   return { id: request.id };
                 },
@@ -87,9 +97,12 @@ describe('RequestsController', () => {
                     );
 
                   if (user.privilege === 'OFFEROR')
-                    requests = requestsRepo.filter(
-                      (request) =>
-                        request.offeror.user.username === user.username,
+                    requests = requestsRepo.filter((request) =>
+                      request.services.find(
+                        (service) =>
+                          service.serviceToOfferor.offeror.user.username ===
+                          user.username,
+                      ),
                     );
 
                   if (requestedOrder === 'ASC')
@@ -185,26 +198,16 @@ describe('RequestsController', () => {
     const todaysDate: Date = new Date();
 
     const makeRequestDTO: MakeRequestDTO = {
-      idOfferor: mockOfferorsRepo[0].id,
-      service: JSON.stringify({ name: 'Dining' }),
       note: 'On my own.',
       requestedFor: todaysDate.setHours(todaysDate.getHours() + 3).toString(),
+      amount: 2,
+      idOfferorService: mockOfferorServicesRepo[0].id,
     };
 
-    it('should return object that holds id property', () => {
+    it('should return an object that holds id property', () => {
       expect(
         controller.makeRequest(mockUsersRepo[1], makeRequestDTO),
-      ).toBeDefined();
-    });
-
-    it('should throw a NotFoundException', () => {
-      const uuid: string = uuidv4();
-
-      makeRequestDTO.idOfferor = uuid;
-
-      expect(() =>
-        controller.makeRequest(mockUsersRepo[1], makeRequestDTO),
-      ).toThrow(`Offeror identified with ${uuid} was not found.`);
+      ).toMatchObject({ id: expect.any(String) });
     });
   });
 

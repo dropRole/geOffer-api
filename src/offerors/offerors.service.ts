@@ -5,7 +5,7 @@ import {
   Inject,
   forwardRef,
 } from '@nestjs/common';
-import BaseService from 'src/common/services/base.service';
+import BaseService from '../common/services/base.service';
 import { Offeror } from './entities/offeror.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
