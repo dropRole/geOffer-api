@@ -3,7 +3,7 @@ import {
   ConflictException,
   InternalServerErrorException,
 } from '@nestjs/common';
-import BaseService from 'src/common/services/base.service';
+import BaseService from '../common/services/base.service';
 import Prohibition from './entities/prohibition.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, SelectQueryBuilder } from 'typeorm';

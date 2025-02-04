@@ -1,15 +1,15 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ComplaintsController } from './complaints.controller';
 import { ComplaintsService } from './complaints.service';
-import User from '../auth/user.entity';
+import { User } from '../auth/entities/user.entity';
 import WriteComplaintDTO from './dto/write-complaint.dto';
-import Complaint from './complaint.entity';
+import Complaint from './entities/complaint.entity';
 import {
   mockComplaintsRepo,
   mockIncidentsRepo,
   mockUsersRepo,
 } from '../testing-mocks';
-import Incident from '../incidents/incident.entity';
+import { Incident } from '../incidents/entities/incident.entity';
 import { NotFoundException } from '@nestjs/common';
 import { v4 as uuidv4 } from 'uuid';
 import ObtainComplaintsDTO from './dto/obtain-complaints.dto';

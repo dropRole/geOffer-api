@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ProhibitionsController } from './prohibitions.controller';
 import { ProhibitionsService } from './prohibitions.service';
-import Prohibition from './prohibition.entity';
+import Prohibition from './entities/prohibition.entity';
 import {
   mockIncidentsRepo,
   mockOffereesRepo,
@@ -9,10 +9,10 @@ import {
   mockUsersRepo,
 } from '../testing-mocks';
 import DeclareProhibitionDTO from './dto/declare-prohibition.dto';
-import Incident from '../incidents/incident.entity';
+import { Incident } from '../incidents/entities/incident.entity';
 import { ConflictException, NotFoundException } from '@nestjs/common';
 import { v4 as uuidv4 } from 'uuid';
-import User from 'src/auth/user.entity';
+import { User } from '../auth/entities/user.entity';
 import ObtainProhibitionsDTO from './dto/obtain-prohibitions.dto';
 import AlterTimeframeDTO from './dto/alter-timeframe.dto';
 
@@ -117,10 +117,12 @@ describe('ProhibitionsController', () => {
                         );
 
                       if (idOfferor)
-                        prohibitions = prohibitionsRepo.filter(
-                          (prohibition) =>
-                            prohibition.incident.reservation.request.offeror
-                              .id === idOfferor,
+                        prohibitions = prohibitionsRepo.filter((prohibition) =>
+                          prohibition.incident.reservation.request.services.find(
+                            (requestService) =>
+                              requestService.serviceToOfferor.offeror.id ==
+                              idOfferor,
+                          ),
                         );
                       break;
                     case 'OFFEREE':
@@ -131,10 +133,12 @@ describe('ProhibitionsController', () => {
                       );
                       break;
                     case 'OFFEROR':
-                      prohibitions = prohibitionsRepo.filter(
-                        (prohibition) =>
-                          prohibition.incident.reservation.request.offeror.user
-                            .username === user.username,
+                      prohibitions = prohibitionsRepo.filter((prohibition) =>
+                        prohibition.incident.reservation.request.services.find(
+                          (requestService) =>
+                            requestService.serviceToOfferor.offeror.user
+                              .username === user.username,
+                        ),
                       );
                       break;
                   }

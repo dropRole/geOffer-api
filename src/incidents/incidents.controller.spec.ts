@@ -1,9 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { IncidentsController } from './incidents.controller';
 import { IncidentsService } from './incidents.service';
-import User from '../auth/user.entity';
+import { User } from '../auth/entities/user.entity';
 import OpenIncidentDTO from './dto/open-incident.dto';
-import Reservation from '../reservations/reservation.entity';
+import Reservation from '../reservations/entities/reservation.entity';
 import { mockIncidentsRepo, mockReservationsRepo } from '../testing-mocks';
 import {
   ConflictException,
@@ -11,11 +11,10 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { v4 as uuidv4 } from 'uuid';
-import Incident from './incident.entity';
+import { Incident, IncidentStatus } from './entities/incident.entity';
 import ObtainIncidentsDTO from './dto/obtain-incidents.dto';
 import RenameIncidentDTO from './dto/rename-incident.dto';
 import AlterIncidentStatusDTO from './dto/alter-incident-status.dto';
-import IncidentStatus from './types';
 
 let incidentsRepo: Incident[] = mockIncidentsRepo;
 

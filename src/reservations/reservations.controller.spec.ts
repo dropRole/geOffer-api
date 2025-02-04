@@ -2,8 +2,8 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ReservationsController } from './reservations.controller';
 import { ReservationsService } from './reservations.service';
 import MakeReservationDTO from './dto/make-reservation.dto';
-import User from '../auth/user.entity';
-import Reservation from './reservation.entity';
+import { User } from '../auth/entities/user.entity';
+import Reservation from './entities/reservation.entity';
 import {
   mockIncidentsRepo,
   mockOffereesRepo,
@@ -11,7 +11,7 @@ import {
   mockReservationsRepo,
   mockUsersRepo,
 } from '../testing-mocks';
-import Request from '../requests/request.entity';
+import Request from '../requests/entities/request.entity';
 import { v4 as uuidv4 } from 'uuid';
 import {
   ConflictException,
@@ -19,7 +19,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import ObtainReservationsDTO from './dto/obtain-reservations.dto';
-import Incident from 'src/incidents/incident.entity';
+import { Incident } from 'src/incidents/entities/incident.entity';
 
 let reservationsRepo: Reservation[] = mockReservationsRepo;
 
@@ -122,9 +122,12 @@ describe('ReservationsController', () => {
                         );
 
                       if (idOfferor)
-                        reservations = reservationsRepo.filter(
-                          (reservations) =>
-                            reservations.request.offeror.id === idOfferor,
+                        reservations = reservationsRepo.filter((reservations) =>
+                          reservations.request.services.find(
+                            (requestService) =>
+                              requestService.serviceToOfferor.offeror.id ===
+                              idOfferor,
+                          ),
                         );
                       break;
                     case 'OFFEREE':
